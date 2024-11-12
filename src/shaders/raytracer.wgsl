@@ -134,7 +134,7 @@ fn get_camera(lookfrom: vec3f, lookat: vec3f, vup: vec3f, vfov: f32, aspect_rati
   return camera;
 }
 
-fn envoriment_color(direction: vec3f, color1: vec3f, color2: vec3f) -> vec3f
+fn environment_color(direction: vec3f, color1: vec3f, color2: vec3f) -> vec3f
 {
   var unit_direction = normalize(direction);
   var t = 0.5 * (unit_direction.y + 1.0);
@@ -158,9 +158,20 @@ fn check_ray_collision(r: ray, max: f32) -> hit_record
   var boxesCount = i32(uniforms[21]);
   var trianglesCount = i32(uniforms[22]);
   var meshCount = i32(uniforms[27]);
+  
+  var r_ = r;
+  var closest = hit_record(RAY_TMAX, vec3f(0.0), vec3f(0.0), vec4f(0.0), vec4f(0.0), false, false);
 
-  var record = hit_record(RAY_TMAX, vec3f(0.0), vec3f(0.0), vec4f(0.0), vec4f(0.0), false, false);
-  var closest = record;
+  for (var i = 0; i < spheresCount; i++)
+  {
+    var sp_ = spheresb[i];
+    var rec_ = hit_record(RAY_TMAX, vec3f(0.0), vec3f(0.0), vec4f(0.0), vec4f(0.0), false, false);
+    hit_sphere(sp_.transform.xyz,sp_.transform.w,r_,&rec_,RAY_TMAX);
+    if(rec_.hit_anything && rec_.t < closest.t )
+    {
+      closest = rec_;
+    }
+  }
 
   return closest;
 }
@@ -196,12 +207,22 @@ fn trace(r: ray, rng_state: ptr<function, u32>) -> vec3f
   var backgroundcolor2 = int_to_rgb(i32(uniforms[12]));
   var behaviour = material_behaviour(true, vec3f(0.0));
 
+  color *= environment_color(r_.direction, backgroundcolor1, backgroundcolor2);
+
   for (var j = 0; j < maxbounces; j = j + 1)
   {
-
+    // create new ray with each bounce
+    var record = check_ray_collision(r_, RAY_TMAX);
+    // get light color at the end of the ray
+    // color *= 1.0;
+    if (record.hit_anything)
+    {
+      color *= 0.0;
+    }
+    
   }
-
-  return light;
+  
+  return color;
 }
 
 @compute @workgroup_size(THREAD_COUNT, THREAD_COUNT, 1)
@@ -225,12 +246,23 @@ fn render(@builtin(global_invocation_id) id : vec3u)
     var cam = get_camera(lookfrom, lookat, vec3(0.0, 1.0, 0.0), uniforms[10], 1.0, uniforms[6], uniforms[5]);
     var samples_per_pixel = i32(uniforms[4]);
 
-    var color = vec3(rng_next_float(&rng_state), rng_next_float(&rng_state), rng_next_float(&rng_state));
+    var color = vec3(0.0, 0.0, 0.0);
 
     // Steps:
     // 1. Loop for each sample per pixel
-    // 2. Get ray
-    // 3. Call trace function
+    
+    for (var i = 0; i<samples_per_pixel; i = i+1)
+    {
+      var u = (f32(id.x) + rng_next_float(&rng_state)) / f32(rez); // u + noise
+      var v = (f32(id.y) + rng_next_float(&rng_state)) / f32(rez); // v + noise
+      // 2. Get ray
+      var r = get_ray(cam, vec2f(u, v), &rng_state);
+      // 3. Call trace function
+      color += trace(r, &rng_state);
+    }
+    color /= f32(samples_per_pixel);
+    
+    
     // 4. Average the color
 
     var color_out = vec4(linear_to_gamma(color), 1.0);
