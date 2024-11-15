@@ -217,11 +217,16 @@ fn trace(r: ray, rng_state: ptr<function, u32>) -> vec3f
   {
     // create new ray with each bounce
     var record = check_ray_collision(r_, RAY_TMAX);
-    // get light color at the end of the ray
-    // color *= 1.0;
+
     if (record.hit_anything)
     {
       color *= record.object_color.xyz;
+      var normal = record.normal;
+      r_ = ray(record.p, reflect(r_.direction,normal));
+    }
+    else
+    {
+      break;
     }
     
   }
