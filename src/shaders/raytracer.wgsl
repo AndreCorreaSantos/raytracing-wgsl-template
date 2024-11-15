@@ -166,6 +166,9 @@ fn check_ray_collision(r: ray, max: f32) -> hit_record
   {
     var sp_ = spheresb[i];
     var rec_ = hit_record(RAY_TMAX, vec3f(0.0), vec3f(0.0), vec4f(0.0), vec4f(0.0), false, false);
+    rec_.object_color = sp_.color;
+    rec_.object_material = sp_.material;
+    
     hit_sphere(sp_.transform.xyz,sp_.transform.w,r_,&rec_,RAY_TMAX);
     if(rec_.hit_anything && rec_.t < closest.t )
     {
@@ -178,6 +181,7 @@ fn check_ray_collision(r: ray, max: f32) -> hit_record
 
 fn lambertian(normal : vec3f, absorption: f32, random_sphere: vec3f, rng_state: ptr<function, u32>) -> material_behaviour
 {
+
   return material_behaviour(true, vec3f(0.0));
 }
 
@@ -217,7 +221,7 @@ fn trace(r: ray, rng_state: ptr<function, u32>) -> vec3f
     // color *= 1.0;
     if (record.hit_anything)
     {
-      color *= 0.0;
+      color *= record.object_color.xyz;
     }
     
   }
@@ -270,8 +274,9 @@ fn render(@builtin(global_invocation_id) id : vec3u)
     
     // 5. Accumulate the color
     var should_accumulate = uniforms[3];
-
+    var accumulated_color = rtfb[map_fb]*should_accumulate + color_out;
+    
     // Set the color to the framebuffer
-    rtfb[map_fb] = color_out;
-    fb[map_fb] = color_out;
+    rtfb[map_fb] = accumulated_color;
+    fb[map_fb] = accumulated_color/accumulated_color.w;
 }
