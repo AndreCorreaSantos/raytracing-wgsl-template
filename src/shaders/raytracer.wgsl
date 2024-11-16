@@ -166,8 +166,8 @@ fn check_ray_collision(r: ray, max: f32) -> hit_record
   {
     var sp_ = spheresb[i];
     var rec_ = hit_record(RAY_TMAX, vec3f(0.0), vec3f(0.0), vec4f(0.0), vec4f(0.0), false, false);
-    rec_.object_color = sp_.color;
-    rec_.object_material = sp_.material;
+    rec_.object_color = sp_.color; // object's color is assigned here
+    rec_.object_material = sp_.material; // smoothness, absorption, specular, refraction are assigned here.
     
     hit_sphere(sp_.transform.xyz,sp_.transform.w,r_,&rec_,RAY_TMAX);
     if(rec_.hit_anything && rec_.t < closest.t )
@@ -195,9 +195,10 @@ fn dielectric(normal : vec3f, r_direction: vec3f, refraction_index: f32, frontfa
   return material_behaviour(false, vec3f(0.0));
 }
 
-fn emmisive(color: vec3f, light: f32) -> material_behaviour
+fn emissive(color: vec3f, light: f32) -> material_behaviour
 {
-  return material_behaviour(false, vec3f(0.0));
+  var b = material_behaviour(true, color*light)
+  return b;
 }
 
 fn trace(r: ray, rng_state: ptr<function, u32>) -> vec3f
@@ -215,14 +216,56 @@ fn trace(r: ray, rng_state: ptr<function, u32>) -> vec3f
 
   for (var j = 0; j < maxbounces; j = j + 1)
   {
+    if (behaviour.scatter == false)
+    {
+      break;
+    }
     // create new ray with each bounce
     var record = check_ray_collision(r_, RAY_TMAX);
 
     if (record.hit_anything)
     {
-      color *= record.object_color.xyz;
-      var normal = record.normal;
-      r_ = ray(record.p, reflect(r_.direction,normal));
+      var smoothness = record.object_material.x;
+      var absorption = record.object_material.y;
+      var specular = record.object_material.z;
+      var emission = record.object_material.w;
+
+      if (emission > 0.0)
+      {
+        // emissive material is a light source
+        var emissive_color = emissive(record.object_color.xyz, emission);
+        color *= emissive_color.direction; // returning light color in the direction of material behaviour
+        break; // ray has reached a light source, no more bounces?
+      } 
+
+      var rng = rng_next_float(rng_state);
+      var rng_sphere = rng_next_vec3_in_unit_sphere(rng_state);
+
+      if (smoothness > 0.0)
+      {
+        if(specular > rng)
+        { // if metallic, we don't change color, we just get the behaviour which is reflecting
+          behaviour = metal(record.normal, r_.direction, smoothness,rng_sphere );
+        }
+        else
+        {
+          // if lambertian we alter the color and scatter with randomness from unit sphere
+          behaviour = lambertian(record.normal, absorption, rng_sphere, rng_state);
+          color *= record.object_color.xyz*(1.0-absorption);
+        }
+      }
+      else if (smoothness < 0.0) // dielectric material, don't know how it works yet shits crazy
+      {
+        behaviour = dielectric(record.normal, r_.direction, smoothness, record.frontface, rng_sphere, absorption, rng_state);
+      }
+      else
+      {
+          // if smoothness is 0 it's a perfect lambertian material
+          behaviour = lambertian(record.normal, absorption, rng_sphere, rng_state);
+          color *= record.object_color.xyz * (1.0-absorption);
+      }
+
+      r_ = ray(record.p, behaviour.direction);
     }
     else
     {
