@@ -179,26 +179,38 @@ fn check_ray_collision(r: ray, max: f32) -> hit_record
   return closest;
 }
 
-fn lambertian(normal : vec3f, absorption: f32, random_sphere: vec3f, rng_state: ptr<function, u32>) -> material_behaviour
+fn lambertian(normal: vec3f, absorption: f32, random_sphere: vec3f, rng_state: ptr<function, u32>) -> material_behaviour
 {
-  var s_dir = normal + random_sphere;
-  // catch degenerate scatter? what is this? COME BACK LATER 
-  if (length(s_dir < 0.0001))
-  {
-    s_dir = normal;
-  }
-  var absorbed = rng_next_float(rng_state);
-  return material_behaviour(true, normalize(s_dir));
+    var scatter_direction = normal + random_sphere;
+    
+    if (length(scatter_direction) < 0.001) {
+        scatter_direction = normal;
+    }
+
+    return material_behaviour(true, normalize(scatter_direction));
 }
 
-fn metal(normal : vec3f, direction: vec3f, fuzz: f32, random_sphere: vec3f) -> material_behaviour
-{
-  return material_behaviour(true, reflect(normal,direction) + fuzz * random_sphere); // DONT KNOW IF ITS RIGHT COME BACK LATER
+fn metal(normal: vec3f, direction: vec3f, fuzz: f32, random_sphere: vec3f) -> material_behaviour {
+    var r = reflect(normalize(direction), normal);
+    var scat = r; //+ fuzz * random_sphere;
+    
+    if (length(scat) < 0.001) {
+        scat = r;
+    }
+    
+    var should_scatter = dot(scat, normal) > 0.0;
+    return material_behaviour(true, normalize(scat));
 }
 
 fn dielectric(normal : vec3f, r_direction: vec3f, refraction_index: f32, frontface: bool, random_sphere: vec3f, fuzz: f32, rng_state: ptr<function, u32>) -> material_behaviour
 {  
-  return material_behaviour(false, vec3f(0.0));
+  return metal(normal, r_direction, fuzz, random_sphere);
+}
+
+fn schlick(cosine: f32, ref_idx: f32) -> f32 {
+    var r0 = (1.0 - ref_idx) / (1.0 + ref_idx);
+    r0 = r0 * r0;
+    return r0 + (1.0 - r0) * pow((1.0 - cosine), 5.0);
 }
 
 fn emissive(color: vec3f, light: f32) -> material_behaviour
@@ -217,56 +229,55 @@ fn trace(r: ray, rng_state: ptr<function, u32>) -> vec3f
   var backgroundcolor2 = int_to_rgb(i32(uniforms[12]));
   var behaviour = material_behaviour(true, vec3f(0.0));
 
-  color *= environment_color(r_.direction, backgroundcolor1, backgroundcolor2);
-
+  //color *= environment_color(r_.direction, backgroundcolor1, backgroundcolor2);
+  var t = 3;
   for (var j = 0; j < maxbounces; j = j + 1)
   {
-    if (behaviour.scatter == false)
-    {
-      break;
-    }
     // create new ray with each bounce
     var record = check_ray_collision(r_, RAY_TMAX);
 
-    if (record.hit_anything)
+    if (!record.hit_anything)
     {
-      var smoothness = record.object_material.x;
-      var absorption = record.object_material.y;
-      var specular = record.object_material.z;
-      var emission = record.object_material.w;
-      var fuzz = 0.0; // FOR NOW DEFINING FUZZ AS 0
-      if (emission > 0.0)
-      {
-        // emissive material is a light source
-        var emissive_color = emissive(record.object_color.xyz, emission);
-        light += color*emissive_color.direction; // returning light color in the direction of material behaviour
-        break; // ray has reached a light source, no more bounces?
-      } 
-
-      var rng = rng_next_float(rng_state);
-      var rng_sphere = rng_next_vec3_in_unit_sphere(rng_state);
-
-      if (smoothness > 0.0)
-      {
-        if(specular > rng)
-        { // if reflection, we don't change color, we just set the behaviour
-          behaviour = metal(record.normal, r_.direction, fuzz,rng_sphere );
-        }
-      }
-      else if (smoothness < 0.0) // dielectric material, don't know how it works yet shits crazy // COME BACK LATER
-      {
-        behaviour = dielectric(record.normal, r_.direction, smoothness, record.frontface, rng_sphere, absorption, rng_state);
-      }
-      else
-      {
-          // if smoothness is 0 it's a perfect lambertian, diffuse, material
-        behaviour = lambertian(record.normal, absorption, rng_sphere, rng_state);
-        color *= record.object_color.xyz * (1.0-absorption);
-      }
-    
-      r_ = ray(record.p + record.normal*0.001, behaviour.direction);
+      color *= environment_color(r_.direction, backgroundcolor1, backgroundcolor2);
+      light += color;
+      break;
     }
+    var smoothness = record.object_material.x;
+    var absorption = record.object_material.y;
+    var specular = record.object_material.z;
+    var emission = record.object_material.w;
+    var fuzz = 0.0; // FOR NOW DEFINING FUZZ AS 0
+    if (emission > 0.0)
+    {
+      // emissive material is a light source
+      var emissive_color = emissive(record.object_color.xyz, emission);
+      light += color*emissive_color.direction; // returning light color in the direction of material behaviour
+      break; // ray has reached a light source, no more bounces?
+    } 
+
+    var rng = rng_next_float(rng_state);
+    var rng_sphere = rng_next_vec3_in_unit_sphere(rng_state);
+
+    if (smoothness > 0.0)
+    {
+      if(specular > rng)
+      { // if reflection, we don't change color, we just set the behaviour
+        behaviour = metal(record.normal, r_.direction, fuzz,rng_sphere );
+      }
+    }
+    // else if (smoothness < 0.0) // dielectric material, don't know how it works yet shits crazy
+    // {
+    //   behaviour = dielectric(record.normal, r_.direction, smoothness, record.frontface, rng_sphere, absorption, rng_state);
+    // }
     else
+    {
+        // if smoothness is 0 it's a perfect lambertian, diffuse, material
+      behaviour = lambertian(record.normal, absorption, rng_sphere, rng_state);
+      color *= record.object_color.xyz * (1.0-absorption);
+    }
+  
+    r_ = ray(record.p + record.normal*0.001, behaviour.direction);
+    if (behaviour.scatter == false)
     {
       break;
     }
@@ -321,7 +332,7 @@ fn render(@builtin(global_invocation_id) id : vec3u)
     
     // 5. Accumulate the color
     var should_accumulate = uniforms[3];
-    var accumulated_color = rtfb[map_fb]*should_accumulate + color_out;
+    var accumulated_color = rtfb[map_fb]*should_accumulate + saturate(color_out);
     
     // Set the color to the framebuffer
     rtfb[map_fb] = accumulated_color;
