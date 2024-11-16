@@ -63,16 +63,16 @@ struct triangle {
 };
 
 struct mesh {
-  transform : vec4f,
+  transform : vec4f, // how do i apply transform, scale and rotation to the obj?
   scale : vec4f,
   rotation : vec4f,
   color : vec4f,
   material : vec4f,
-  min : vec4f,
+  min : vec4f,  // min and max?
   max : vec4f,
   show_bb : f32,
-  start : f32,
-  end : f32,
+  start : f32, // index of first and last triangle in triangles buffer? COME BACK LATER
+  end : f32, 
 };
 
 struct material_behaviour {
@@ -162,6 +162,7 @@ fn check_ray_collision(r: ray, max: f32) -> hit_record
   var r_ = r;
   var closest = hit_record(RAY_TMAX, vec3f(0.0), vec3f(0.0), vec4f(0.0), vec4f(0.0), false, false);
   var min_t = RAY_TMAX;
+  // spheres
   for (var i = 0; i < spheresCount; i++)
   {
     var sp_ = spheresb[i];
@@ -176,7 +177,7 @@ fn check_ray_collision(r: ray, max: f32) -> hit_record
       closest = rec_;
     }
   }
-
+  // quads
   for (var i = 0; i<quadsCount; i++ )
   {
     var quad_ =  quadsb[i];
@@ -190,6 +191,47 @@ fn check_ray_collision(r: ray, max: f32) -> hit_record
       closest = rec_;
     }
   }
+  // boxes
+  for (var i = 0; i<boxesCount; i++ )
+  {
+    var box_ =  boxesb[i];
+    var rec_ = hit_record(RAY_TMAX, vec3f(0.0), vec3f(0.0), vec4f(0.0), vec4f(0.0), false, false);
+    hit_box(r_,box_.center.xyz,box_.radius.xyz,&rec_,min_t);
+    if(rec_.hit_anything)
+    {
+      min_t = rec_.t;
+      rec_.object_color = box_.color;
+      rec_.object_material = box_.material;
+      closest = rec_;
+    }
+  }
+  // meshes
+  for (var i =0; i<meshCount; i++ )
+  {
+    var mesh_ = meshb[i];
+    // if(mesh.show_bb == 0.0) {
+    //       continue;
+    // }
+
+    let ti = i32(mesh_.start);
+    let tf = i32(mesh_.end);
+    
+    for (var j = ti; j<= tf; j++)
+    {
+      var tri_ =  trianglesb[j];
+      var rec_ = hit_record(RAY_TMAX, vec3f(0.0), vec3f(0.0), vec4f(0.0), vec4f(0.0), false, false);
+      hit_triangle(r_,tri_.v0.xyz,tri_.v1.xyz,tri_.v2.xyz,&rec_,min_t);
+      if(rec_.hit_anything)
+      {
+        min_t = rec_.t;
+        rec_.object_color = mesh_.color;
+        rec_.object_material = mesh_.material;
+        closest = rec_;
+      }
+    }
+  }
+
+
 
   return closest;
 }
