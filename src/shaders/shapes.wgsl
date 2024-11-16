@@ -1,10 +1,4 @@
-fn hit_sphere(
-    center: vec3f, 
-    radius: f32, 
-    r: ray, 
-    record: ptr<function, hit_record>, 
-    max: f32
-) {
+fn hit_sphere(center: vec3f, radius: f32, r: ray, record: ptr<function, hit_record>, max: f32) {
     var a = dot(r.direction, r.direction);
     var h = dot(r.direction, r.origin - center);
     var c = dot(r.origin - center, r.origin - center) - radius * radius;

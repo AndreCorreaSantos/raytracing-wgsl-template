@@ -263,7 +263,11 @@ fn check_ray_collision(r: ray, max: f32) -> hit_record
       }
   }
 
+  // Set frontface and adjust normal direction
 
+  var norm = closest.normal;
+  closest.frontface = dot(r.direction, norm) < 0.0;
+  closest.normal = select(-norm, norm, closest.frontface);
 
   return closest;
 }
@@ -291,16 +295,39 @@ fn metal(normal: vec3f, direction: vec3f, fuzz: f32, random_sphere: vec3f) -> ma
     return material_behaviour(true, normalize(scat));
 }
 
-fn dielectric(normal : vec3f, r_direction: vec3f, refraction_index: f32, frontface: bool, random_sphere: vec3f, fuzz: f32, rng_state: ptr<function, u32>) -> material_behaviour
-{  
-  return metal(normal, r_direction, fuzz, random_sphere);
+
+fn dielectric(normal: vec3f,r_direction: vec3f,refraction_index: f32,frontface: bool,random_sphere: vec3f,fuzz: f32,rng_state: ptr<function, u32>) -> material_behaviour {
+    // Compute the ratio of refractive indices
+    let ri = select(refraction_index, 1.0 / refraction_index, frontface);
+
+    // Normalize the incoming ray direction
+    let unit_direction = normalize(r_direction);
+
+    // Calculate cosine and sine of the angle between the ray and the normal
+    let cos_theta = min(dot(-unit_direction, normal), 1.0);
+    let sin_theta = sqrt(1.0 - cos_theta * cos_theta);
+
+    // Determine if total internal reflection occurs
+    let cannot_refract = ri * sin_theta > 1.0;
+
+    // Compute reflectance using Schlick's approximation
+    let r0 = (1.0 - ri) / (1.0 + ri);
+    let r0_squared = r0 * r0;
+    let reflect_prob = r0_squared + (1.0 - r0_squared) * pow(1.0 - cos_theta, 5.0);
+
+    // Decide whether to reflect or refract
+    var direction: vec3f;
+    if (cannot_refract || reflect_prob > rng_next_float(rng_state)) {
+        direction = reflect(unit_direction, normal);
+    } else {
+        let r_perp = ri * (unit_direction + cos_theta * normal);
+        let r_parallel = -sqrt(abs(1.0 - dot(r_perp, r_perp))) * normal;
+        direction = r_perp + r_parallel;
+    }
+
+    return material_behaviour(true, normalize(direction));
 }
 
-fn schlick(cosine: f32, ref_idx: f32) -> f32 {
-    var r0 = (1.0 - ref_idx) / (1.0 + ref_idx);
-    r0 = r0 * r0;
-    return r0 + (1.0 - r0) * pow((1.0 - cosine), 5.0);
-}
 
 fn emissive(color: vec3f, light: f32) -> material_behaviour
 {
@@ -341,7 +368,7 @@ fn trace(r: ray, rng_state: ptr<function, u32>) -> vec3f
       // emissive material is a light source
       var emissive_color = emissive(record.object_color.xyz, emission);
       light += color*emissive_color.direction; // returning light color in the direction of material behaviour
-      break; // ray has reached a light source, no more bounces?
+      // break; // ray has reached a light source, no more bounces?
     } 
 
     var rng = rng_next_float(rng_state);
@@ -354,10 +381,12 @@ fn trace(r: ray, rng_state: ptr<function, u32>) -> vec3f
         behaviour = metal(record.normal, r_.direction, fuzz,rng_sphere );
       }
     }
-    // else if (smoothness < 0.0) // dielectric material, don't know how it works yet shits crazy
-    // {
-    //   behaviour = dielectric(record.normal, r_.direction, smoothness, record.frontface, rng_sphere, absorption, rng_state);
-    // }
+    else if (smoothness < 0.0) {
+      // Dielectric material
+      behaviour = dielectric(record.normal, r_.direction, specular, record.frontface, rng_sphere, absorption, rng_state);
+      r_ = ray(record.p, behaviour.direction);
+      continue;
+    }
     else
     {
         // if smoothness is 0 it's a perfect lambertian, diffuse, material
