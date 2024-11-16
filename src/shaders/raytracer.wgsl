@@ -206,32 +206,24 @@ fn check_ray_collision(r: ray, max: f32) -> hit_record
     }
   }
   // meshes
-  for (var i: i32 = 0; i < meshCount; i = i + 1) {
-      var mesh_ = meshb[i];
+  for (var i = 0; i < meshCount; i++) {
+      var m = meshb[i];
 
-      if (mesh_.show_bb == 0.0) {
-          continue;
-      }
-
-      let ti: i32 = i32(mesh_.start);
-      let tf: i32 = i32(mesh_.end);
-
-      // Get the mesh's scale, rotation, and translation
-      let scale = mesh_.scale.xyz;
-      let rotation = mesh_.rotation.xyz;    // Assuming in degrees  IF DOESNT WORK COME BACK LATER
-      let translation = mesh_.transform.xyz;
+      // Extract the mesh's scale and rotation
+      var scale = m.scale.xyz;
+      var rotation = m.rotation.xyz; // Assuming rotation is in degrees
 
       // Convert rotation from degrees to radians
-      let rotation_radians = vec3f(
+      var rotation_radians = vec3f(
           degrees_to_radians(rotation.x),
           degrees_to_radians(rotation.y),
           degrees_to_radians(rotation.z)
       );
 
-      // Compute rotation quaternion
-      let rotation_quat = quaternion_from_euler(rotation_radians);
+      // Compute rotation quaternion from Euler angles
+      var rotation_quat = quaternion_from_euler(rotation_radians);
 
-      for (var j: i32 = ti; j <= tf; j = j + 1) {
+      for (var j = i32(m.start); j < i32(m.end); j++) {
           var tri_ = trianglesb[j];
 
           // Apply scaling to triangle vertices
@@ -244,21 +236,15 @@ fn check_ray_collision(r: ray, max: f32) -> hit_record
           v1 = rotate_vector(v1, rotation_quat);
           v2 = rotate_vector(v2, rotation_quat);
 
-          // Apply translation
-          v0 = v0 + translation;
-          v1 = v1 + translation;
-          v2 = v2 + translation;
-
           var rec_ = hit_record(RAY_TMAX, vec3f(0.0), vec3f(0.0), vec4f(0.0), vec4f(0.0), false, false);
 
-          // Use the transformed vertices in hit_triangle
-          hit_triangle(r_, v0, v1, v2, &rec_, min_t);
+          // Use the transformed vertices in the hit_triangle function
+          hit_triangle(r, v0, v1, v2, &rec_, max);
 
-          if (rec_.hit_anything) {
-              min_t = rec_.t;
-              rec_.object_color = mesh_.color;
-              rec_.object_material = mesh_.material;
+          if (rec_.hit_anything && rec_.t < closest.t) {
               closest = rec_;
+              closest.object_color = m.color;
+              closest.object_material = m.material;
           }
       }
   }
@@ -395,10 +381,10 @@ fn trace(r: ray, rng_state: ptr<function, u32>) -> vec3f
     }
   
     r_ = ray(record.p + record.normal*0.001, behaviour.direction);
-    if (behaviour.scatter == false)
-    {
-      break;
-    }
+    // if (behaviour.scatter == false)
+    // {
+    //   break;
+    // }
     
   }
   
@@ -440,15 +426,14 @@ fn render(@builtin(global_invocation_id) id : vec3u)
       // 3. Call trace function
       color += trace(r, &rng_state);
     }
+      // 4. Average the color
     color /= f32(samples_per_pixel);
     
-    
-    // 4. Average the color
-
+ 
     var color_out = vec4(linear_to_gamma(color), 1.0);
     var map_fb = mapfb(id.xy, rez);
 
-    color_out = clamp(color_out, vec4(0.0), vec4(1.0));
+    // color_out = clamp(color_out, vec4(0.0), vec4(1.0));
     // 5. Accumulate the color
     var should_accumulate = uniforms[3];
     var accumulated_color = rtfb[map_fb]*should_accumulate + color_out;
