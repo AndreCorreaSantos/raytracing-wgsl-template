@@ -181,13 +181,19 @@ fn check_ray_collision(r: ray, max: f32) -> hit_record
 
 fn lambertian(normal : vec3f, absorption: f32, random_sphere: vec3f, rng_state: ptr<function, u32>) -> material_behaviour
 {
-
-  return material_behaviour(true, vec3f(0.0));
+  var s_dir = normal + random_sphere;
+  // catch degenerate scatter? what is this? COME BACK LATER 
+  if (length(s_dir < 0.0001))
+  {
+    s_dir = normal;
+  }
+  var absorbed = rng_next_float(rng_state);
+  return material_behaviour(true, normalize(s_dir));
 }
 
 fn metal(normal : vec3f, direction: vec3f, fuzz: f32, random_sphere: vec3f) -> material_behaviour
 {
-  return material_behaviour(false, vec3f(0.0));
+  return material_behaviour(true, reflect(normal,direction) + fuzz * random_sphere); // DONT KNOW IF ITS RIGHT COME BACK LATER
 }
 
 fn dielectric(normal : vec3f, r_direction: vec3f, refraction_index: f32, frontface: bool, random_sphere: vec3f, fuzz: f32, rng_state: ptr<function, u32>) -> material_behaviour
@@ -197,8 +203,7 @@ fn dielectric(normal : vec3f, r_direction: vec3f, refraction_index: f32, frontfa
 
 fn emissive(color: vec3f, light: f32) -> material_behaviour
 {
-  var b = material_behaviour(true, color*light)
-  return b;
+  return material_behaviour(true, color*light);
 }
 
 fn trace(r: ray, rng_state: ptr<function, u32>) -> vec3f
@@ -229,12 +234,12 @@ fn trace(r: ray, rng_state: ptr<function, u32>) -> vec3f
       var absorption = record.object_material.y;
       var specular = record.object_material.z;
       var emission = record.object_material.w;
-
+      var fuzz = 0.0; // FOR NOW DEFINING FUZZ AS 0
       if (emission > 0.0)
       {
         // emissive material is a light source
         var emissive_color = emissive(record.object_color.xyz, emission);
-        color *= emissive_color.direction; // returning light color in the direction of material behaviour
+        light += color*emissive_color.direction; // returning light color in the direction of material behaviour
         break; // ray has reached a light source, no more bounces?
       } 
 
@@ -244,28 +249,22 @@ fn trace(r: ray, rng_state: ptr<function, u32>) -> vec3f
       if (smoothness > 0.0)
       {
         if(specular > rng)
-        { // if metallic, we don't change color, we just get the behaviour which is reflecting
-          behaviour = metal(record.normal, r_.direction, smoothness,rng_sphere );
-        }
-        else
-        {
-          // if lambertian we alter the color and scatter with randomness from unit sphere
-          behaviour = lambertian(record.normal, absorption, rng_sphere, rng_state);
-          color *= record.object_color.xyz*(1.0-absorption);
+        { // if reflection, we don't change color, we just set the behaviour
+          behaviour = metal(record.normal, r_.direction, fuzz,rng_sphere );
         }
       }
-      else if (smoothness < 0.0) // dielectric material, don't know how it works yet shits crazy
+      else if (smoothness < 0.0) // dielectric material, don't know how it works yet shits crazy // COME BACK LATER
       {
         behaviour = dielectric(record.normal, r_.direction, smoothness, record.frontface, rng_sphere, absorption, rng_state);
       }
       else
       {
-          // if smoothness is 0 it's a perfect lambertian material
-          behaviour = lambertian(record.normal, absorption, rng_sphere, rng_state);
-          color *= record.object_color.xyz * (1.0-absorption);
+          // if smoothness is 0 it's a perfect lambertian, diffuse, material
+        behaviour = lambertian(record.normal, absorption, rng_sphere, rng_state);
+        color *= record.object_color.xyz * (1.0-absorption);
       }
-
-      r_ = ray(record.p, behaviour.direction);
+    
+      r_ = ray(record.p + record.normal*0.001, behaviour.direction);
     }
     else
     {
@@ -274,7 +273,7 @@ fn trace(r: ray, rng_state: ptr<function, u32>) -> vec3f
     
   }
   
-  return color;
+  return light;
 }
 
 @compute @workgroup_size(THREAD_COUNT, THREAD_COUNT, 1)
