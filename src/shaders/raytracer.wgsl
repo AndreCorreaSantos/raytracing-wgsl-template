@@ -206,29 +206,61 @@ fn check_ray_collision(r: ray, max: f32) -> hit_record
     }
   }
   // meshes
-  for (var i =0; i<meshCount; i++ )
-  {
-    var mesh_ = meshb[i];
-    // if(mesh.show_bb == 0.0) {
-    //       continue;
-    // }
+  for (var i: i32 = 0; i < meshCount; i = i + 1) {
+      var mesh_ = meshb[i];
 
-    let ti = i32(mesh_.start);
-    let tf = i32(mesh_.end);
-    
-    for (var j = ti; j<= tf; j++)
-    {
-      var tri_ =  trianglesb[j];
-      var rec_ = hit_record(RAY_TMAX, vec3f(0.0), vec3f(0.0), vec4f(0.0), vec4f(0.0), false, false);
-      hit_triangle(r_,tri_.v0.xyz,tri_.v1.xyz,tri_.v2.xyz,&rec_,min_t);
-      if(rec_.hit_anything)
-      {
-        min_t = rec_.t;
-        rec_.object_color = mesh_.color;
-        rec_.object_material = mesh_.material;
-        closest = rec_;
+      if (mesh_.show_bb == 0.0) {
+          continue;
       }
-    }
+
+      let ti: i32 = i32(mesh_.start);
+      let tf: i32 = i32(mesh_.end);
+
+      // Get the mesh's scale, rotation, and translation
+      let scale = mesh_.scale.xyz;
+      let rotation = mesh_.rotation.xyz;    // Assuming in degrees  IF DOESNT WORK COME BACK LATER
+      let translation = mesh_.transform.xyz;
+
+      // Convert rotation from degrees to radians
+      let rotation_radians = vec3f(
+          degrees_to_radians(rotation.x),
+          degrees_to_radians(rotation.y),
+          degrees_to_radians(rotation.z)
+      );
+
+      // Compute rotation quaternion
+      let rotation_quat = quaternion_from_euler(rotation_radians);
+
+      for (var j: i32 = ti; j <= tf; j = j + 1) {
+          var tri_ = trianglesb[j];
+
+          // Apply scaling to triangle vertices
+          var v0 = tri_.v0.xyz * scale;
+          var v1 = tri_.v1.xyz * scale;
+          var v2 = tri_.v2.xyz * scale;
+
+          // Rotate vertices using quaternion
+          v0 = rotate_vector(v0, rotation_quat);
+          v1 = rotate_vector(v1, rotation_quat);
+          v2 = rotate_vector(v2, rotation_quat);
+
+          // Apply translation
+          v0 = v0 + translation;
+          v1 = v1 + translation;
+          v2 = v2 + translation;
+
+          var rec_ = hit_record(RAY_TMAX, vec3f(0.0), vec3f(0.0), vec4f(0.0), vec4f(0.0), false, false);
+
+          // Use the transformed vertices in hit_triangle
+          hit_triangle(r_, v0, v1, v2, &rec_, min_t);
+
+          if (rec_.hit_anything) {
+              min_t = rec_.t;
+              rec_.object_color = mesh_.color;
+              rec_.object_material = mesh_.material;
+              closest = rec_;
+          }
+      }
   }
 
 
