@@ -161,17 +161,32 @@ fn check_ray_collision(r: ray, max: f32) -> hit_record
   
   var r_ = r;
   var closest = hit_record(RAY_TMAX, vec3f(0.0), vec3f(0.0), vec4f(0.0), vec4f(0.0), false, false);
-
+  var min_t = RAY_TMAX;
   for (var i = 0; i < spheresCount; i++)
   {
     var sp_ = spheresb[i];
     var rec_ = hit_record(RAY_TMAX, vec3f(0.0), vec3f(0.0), vec4f(0.0), vec4f(0.0), false, false);
-    rec_.object_color = sp_.color; // object's color is assigned here
-    rec_.object_material = sp_.material; // smoothness, absorption, specular, refraction are assigned here.
     
-    hit_sphere(sp_.transform.xyz,sp_.transform.w,r_,&rec_,RAY_TMAX);
-    if(rec_.hit_anything && rec_.t < closest.t )
+    hit_sphere(sp_.transform.xyz,sp_.transform.w,r_,&rec_,min_t);
+    if(rec_.hit_anything)
     {
+      min_t = rec_.t;
+      rec_.object_color = sp_.color; // object's color is assigned here
+      rec_.object_material = sp_.material; // smoothness, absorption, specular, refraction are assigned here.
+      closest = rec_;
+    }
+  }
+
+  for (var i = 0; i<quadsCount; i++ )
+  {
+    var quad_ =  quadsb[i];
+    var rec_ = hit_record(RAY_TMAX, vec3f(0.0), vec3f(0.0), vec4f(0.0), vec4f(0.0), false, false);
+    hit_quad(r_,quad_.Q,quad_.u,quad_.v,&rec_,min_t);
+    if(rec_.hit_anything)
+    {
+      min_t = rec_.t;
+      rec_.object_color = quad_.color;
+      rec_.object_material = quad_.material;
       closest = rec_;
     }
   }
@@ -230,7 +245,7 @@ fn trace(r: ray, rng_state: ptr<function, u32>) -> vec3f
   var behaviour = material_behaviour(true, vec3f(0.0));
 
   //color *= environment_color(r_.direction, backgroundcolor1, backgroundcolor2);
-  var t = 3;
+  //var t = 3;
   for (var j = 0; j < maxbounces; j = j + 1)
   {
     // create new ray with each bounce
@@ -329,10 +344,11 @@ fn render(@builtin(global_invocation_id) id : vec3u)
 
     var color_out = vec4(linear_to_gamma(color), 1.0);
     var map_fb = mapfb(id.xy, rez);
-    
+
+    color_out = clamp(color_out, vec4(0.0), vec4(1.0));
     // 5. Accumulate the color
     var should_accumulate = uniforms[3];
-    var accumulated_color = rtfb[map_fb]*should_accumulate + saturate(color_out);
+    var accumulated_color = rtfb[map_fb]*should_accumulate + color_out;
     
     // Set the color to the framebuffer
     rtfb[map_fb] = accumulated_color;
