@@ -349,43 +349,39 @@ fn trace(r: ray, rng_state: ptr<function, u32>) -> vec3f
     var specular = record.object_material.z;
     var emission = record.object_material.w;
 
-
-    if (emission > 0.0)
-    {
-      // emissive material is a light source
-      var emissive_color = emissive(record.object_color.xyz, emission);
-      light += color*emissive_color.direction; // returning light color in the direction of material behaviour
-      // break; // ray has reached a light source, no more bounces?
-    } 
-
     var rng = rng_next_float(rng_state);
     var rng_sphere = rng_next_vec3_in_unit_sphere(rng_state);
 
-    if (smoothness > 0.0)
+    var lambertian_b = lambertian(record.normal, absorption, rng_sphere, rng_state);
+    var metalic_b = metal(record.normal, r_.direction, absorption,rng_sphere );
+    var emissive_b = emissive(record.object_color.xyz, emission);
+    var dielectric_b = dielectric(record.normal, r_.direction, specular, record.frontface, rng_sphere, absorption, rng_state);
+
+
+    if ( emission > 0.0) // emissive material
     {
-      if(specular > rng)
-      { // if reflection, we don't change color, we just set the behaviour
-        behaviour = metal(record.normal, r_.direction, absorption,rng_sphere );
+      light += color*emissive_b.direction;
+      break;
+    } 
+    // metalic x lambertian behaviour
+    if (smoothness >= 0.0) 
+    {
+      if(specular > rng) // metallic reflection
+      { 
+        behaviour = metalic_b;
+      }
+      else // lambertian
+      {
+        behaviour = lambertian_b;
+        color *= record.object_color.xyz * (1.0-absorption);
       }
     }
+    
     else if (smoothness < 0.0) {
-      // Dielectric material
-      behaviour = dielectric(record.normal, r_.direction, specular, record.frontface, rng_sphere, absorption, rng_state);
-      r_ = ray(record.p, behaviour.direction);
-      continue;
+      behaviour = dielectric_b;
     }
-    else
-    {
-        // if smoothness is 0 it's a perfect lambertian, diffuse, material
-      behaviour = lambertian(record.normal, absorption, rng_sphere, rng_state);
-      color *= record.object_color.xyz * (1.0-absorption);
-    }
-  
+
     r_ = ray(record.p + record.normal*0.001, behaviour.direction);
-    // if (behaviour.scatter == false)
-    // {
-    //   break;
-    // }
     
   }
   
