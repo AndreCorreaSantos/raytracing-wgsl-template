@@ -271,7 +271,7 @@ fn lambertian(normal: vec3f, absorption: f32, random_sphere: vec3f, rng_state: p
 
 fn metal(normal: vec3f, direction: vec3f, fuzz: f32, random_sphere: vec3f) -> material_behaviour {
     var r = reflect(normalize(direction), normal);
-    var scat = r; //+ fuzz * random_sphere;
+    var scat = r + fuzz * random_sphere;
     
     if (length(scat) < 0.001) {
         scat = r;
@@ -348,7 +348,8 @@ fn trace(r: ray, rng_state: ptr<function, u32>) -> vec3f
     var absorption = record.object_material.y;
     var specular = record.object_material.z;
     var emission = record.object_material.w;
-    var fuzz = 0.0; // FOR NOW DEFINING FUZZ AS 0
+
+
     if (emission > 0.0)
     {
       // emissive material is a light source
@@ -364,7 +365,7 @@ fn trace(r: ray, rng_state: ptr<function, u32>) -> vec3f
     {
       if(specular > rng)
       { // if reflection, we don't change color, we just set the behaviour
-        behaviour = metal(record.normal, r_.direction, fuzz,rng_sphere );
+        behaviour = metal(record.normal, r_.direction, absorption,rng_sphere );
       }
     }
     else if (smoothness < 0.0) {
@@ -428,6 +429,7 @@ fn render(@builtin(global_invocation_id) id : vec3u)
     }
       // 4. Average the color
     color /= f32(samples_per_pixel);
+    color = saturate(color);
     
  
     var color_out = vec4(linear_to_gamma(color), 1.0);
