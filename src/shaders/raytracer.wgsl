@@ -282,7 +282,7 @@ fn metal(normal: vec3f, direction: vec3f, fuzz: f32, random_sphere: vec3f) -> ma
 }
 
 
-fn dielectric(normal: vec3f,r_direction: vec3f,refraction_index: f32,frontface: bool,random_sphere: vec3f,fuzz: f32,rng_state: ptr<function, u32>) -> material_behaviour {
+fn dielectric(normal: vec3f, r_direction: vec3f, refraction_index: f32, frontface: bool, random_sphere: vec3f, fuzz: f32, rng_state: ptr<function, u32>) -> material_behaviour {
     // Compute the ratio of refractive indices
     let ri = select(refraction_index, 1.0 / refraction_index, frontface);
 
@@ -304,8 +304,10 @@ fn dielectric(normal: vec3f,r_direction: vec3f,refraction_index: f32,frontface: 
     // Decide whether to reflect or refract
     var direction: vec3f;
     if (cannot_refract || reflect_prob > rng_next_float(rng_state)) {
+        // Reflect the ray
         direction = reflect(unit_direction, normal);
     } else {
+        // Refract the ray
         let r_perp = ri * (unit_direction + cos_theta * normal);
         let r_parallel = -sqrt(abs(1.0 - dot(r_perp, r_perp))) * normal;
         direction = r_perp + r_parallel;
@@ -329,13 +331,12 @@ fn trace(r: ray, rng_state: ptr<function, u32>) -> vec3f
   
   var backgroundcolor1 = int_to_rgb(i32(uniforms[11]));
   var backgroundcolor2 = int_to_rgb(i32(uniforms[12]));
+
   var behaviour = material_behaviour(true, vec3f(0.0));
 
-  //color *= environment_color(r_.direction, backgroundcolor1, backgroundcolor2);
-  //var t = 3;
   for (var j = 0; j < maxbounces; j = j + 1)
   {
-    // create new ray with each bounce
+    // check current ray
     var record = check_ray_collision(r_, RAY_TMAX);
 
     if (!record.hit_anything)
@@ -357,12 +358,13 @@ fn trace(r: ray, rng_state: ptr<function, u32>) -> vec3f
     var emissive_b = emissive(record.object_color.xyz, emission);
     var dielectric_b = dielectric(record.normal, r_.direction, specular, record.frontface, rng_sphere, absorption, rng_state);
 
-
+    var new_pos = record.p + record.normal*0.01;
     if ( emission > 0.0) // emissive material
     {
       light += color*emissive_b.direction;
       break;
     } 
+
     // metalic x lambertian behaviour
     if (smoothness >= 0.0) 
     {
@@ -376,12 +378,14 @@ fn trace(r: ray, rng_state: ptr<function, u32>) -> vec3f
         color *= record.object_color.xyz * (1.0-absorption);
       }
     }
-    
+
     else if (smoothness < 0.0) {
       behaviour = dielectric_b;
+      new_pos = record.p - record.normal*0.01;
     }
 
-    r_ = ray(record.p + record.normal*0.001, behaviour.direction);
+    // create new ray for the bounce
+    r_ = ray(new_pos, behaviour.direction);
     
   }
   
@@ -425,7 +429,7 @@ fn render(@builtin(global_invocation_id) id : vec3u)
     }
       // 4. Average the color
     color /= f32(samples_per_pixel);
-    color = saturate(color);
+    // color = saturate(color);
     
  
     var color_out = vec4(linear_to_gamma(color), 1.0);
