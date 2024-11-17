@@ -208,44 +208,40 @@ fn check_ray_collision(r: ray, max: f32) -> hit_record
   // meshes
   for (var i = 0; i < meshCount; i++) {
       var m = meshb[i];
+      // bounding box hit check
+      var new_record = hit_record(RAY_TMAX, vec3f(0.0), vec3f(0.0), vec4f(0.0), vec4f(0.0), false, false);
+      var center = (m.min.xyz + m.max.xyz) * 0.5;
+      var radius = (m.max.xyz - m.min.xyz) * 0.5;
+      hit_box(r, center, radius, &new_record, max);
 
-      // Extract the mesh's scale and rotation
-      var scale = m.scale.xyz;
-      var rotation = m.rotation.xyz; // Assuming rotation is in degrees
-
-      // Convert rotation from degrees to radians
-      var rotation_radians = vec3f(
-          degrees_to_radians(rotation.x),
-          degrees_to_radians(rotation.y),
-          degrees_to_radians(rotation.z)
-      );
-
-      // Compute rotation quaternion from Euler angles
-      var rotation_quat = quaternion_from_euler(rotation_radians);
-
-      for (var j = i32(m.start); j < i32(m.end); j++) {
-          var tri_ = trianglesb[j];
-
-          // Apply scaling to triangle vertices
-          var v0 = tri_.v0.xyz * scale;
-          var v1 = tri_.v1.xyz * scale;
-          var v2 = tri_.v2.xyz * scale;
-
-          // Rotate vertices using quaternion
-          v0 = rotate_vector(v0, rotation_quat);
-          v1 = rotate_vector(v1, rotation_quat);
-          v2 = rotate_vector(v2, rotation_quat);
-
-          var rec_ = hit_record(RAY_TMAX, vec3f(0.0), vec3f(0.0), vec4f(0.0), vec4f(0.0), false, false);
-
-          // Use the transformed vertices in the hit_triangle function
-          hit_triangle(r, v0, v1, v2, &rec_, max);
-
-          if (rec_.hit_anything && rec_.t < closest.t) {
-              closest = rec_;
+      if (m.show_bb > 0.0) {
+          // Bounding box hit check
+          if (new_record.hit_anything && new_record.t < closest.t) {
+              closest = new_record;
               closest.object_color = m.color;
               closest.object_material = m.material;
           }
+      } else {
+          if (new_record.hit_anything)
+          {
+            for (var j = i32(m.start); j < i32(m.end); j++) {
+                var tri_ = trianglesb[j];
+                new_record = hit_record(RAY_TMAX, vec3f(0.0), vec3f(0.0), vec4f(0.0), vec4f(0.0), false, false);
+
+                var v0 = tri_.v0.xyz;
+                var v1 = tri_.v1.xyz;
+                var v2 = tri_.v2.xyz;
+
+                hit_triangle(r, v0, v1, v2, &new_record, max);
+
+                if (new_record.hit_anything && new_record.t < closest.t) {
+                    closest = new_record;
+                    closest.object_color = m.color;
+                    closest.object_material = m.material;
+                }
+            }
+          }
+
       }
   }
 
