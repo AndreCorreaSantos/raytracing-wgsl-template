@@ -85,7 +85,7 @@ const quadsBuffer = await getComputeBuffer(gpu, quadsBufferSize, GPUBufferUsage.
 
 const boxesBufferSize = (sizes.vec4 * 5) * MAX_BOXES;
 const boxesBuffer = await getComputeBuffer(gpu, boxesBufferSize, GPUBufferUsage.COPY_DST | GPUBufferUsage.STORAGE);
-
+    
 const trianglesBufferSize = (sizes.vec4 * 3) * MAX_TRIANGLES;
 const trianglesBuffer = await getComputeBuffer(gpu, trianglesBufferSize, GPUBufferUsage.COPY_DST | GPUBufferUsage.STORAGE);
 
@@ -447,6 +447,7 @@ function writeUniforms()
     uniforms.boxCount = boxes.length;
     uniforms.trianglesCount = triangles.length;
     uniforms.meshCount = meshes.length;
+
     
     var uniformData = new Float32Array(uniformsBufferSize / sizes.f32);
     var offset = 0;

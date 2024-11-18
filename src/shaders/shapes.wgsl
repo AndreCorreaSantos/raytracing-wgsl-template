@@ -110,8 +110,11 @@ fn hit_triangle(r: ray, v0: vec3f, v1: vec3f, v2: vec3f, record: ptr<function, h
   record.hit_anything = true;
 }
 
-fn hit_box(r: ray, center: vec3f, rad: vec3f, record: ptr<function, hit_record>, t_max: f32)
+fn hit_box(r: ray, center: vec3f, rad: vec3f, rotation: vec4f, record: ptr<function, hit_record>, t_max: f32)
 {
+  var rot = rotation.xyz;//assuming rotation received is already in radians
+  var quat = quaternion_from_euler(rot);
+
   var m = 1.0 / r.direction;
   var n = m * (r.origin - center);
   var k = abs(m) * rad;

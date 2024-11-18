@@ -172,8 +172,8 @@ fn check_ray_collision(r: ray, max: f32) -> hit_record
     if(rec_.hit_anything)
     {
       min_t = rec_.t;
-      rec_.object_color = sp_.color; // object's color is assigned here
-      rec_.object_material = sp_.material; // smoothness, absorption, specular, refraction are assigned here.
+      rec_.object_color = sp_.color; 
+      rec_.object_material = sp_.material;
       closest = rec_;
     }
   }
@@ -196,7 +196,7 @@ fn check_ray_collision(r: ray, max: f32) -> hit_record
   {
     var box_ =  boxesb[i];
     var rec_ = hit_record(RAY_TMAX, vec3f(0.0), vec3f(0.0), vec4f(0.0), vec4f(0.0), false, false);
-    hit_box(r_,box_.center.xyz,box_.radius.xyz,&rec_,min_t);
+    hit_box(r_,box_.center.xyz,box_.radius.xyz,box_.rotation,&rec_,min_t);
     if(rec_.hit_anything)
     {
       min_t = rec_.t;
@@ -212,7 +212,7 @@ fn check_ray_collision(r: ray, max: f32) -> hit_record
       var new_record = hit_record(RAY_TMAX, vec3f(0.0), vec3f(0.0), vec4f(0.0), vec4f(0.0), false, false);
       var center = (m.min.xyz + m.max.xyz) * 0.5;
       var radius = (m.max.xyz - m.min.xyz) * 0.5;
-      hit_box(r, center, radius, &new_record, max);
+      hit_box(r, center, radius,vec4f(0.0), &new_record, max);
 
       if (m.show_bb > 0.0) {
           // Bounding box hit check
