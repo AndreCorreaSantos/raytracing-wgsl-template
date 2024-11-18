@@ -28,7 +28,7 @@ let cameraVelocity = [0.0, 0.0, 0.0];
 let cameraRotationVelocity = [0.0, 0.0, 0.0];
 let performanceStats = { ms: 0, fps: 0 };
 
-const sizes = { f32: 4, u32: 4, i32: 4, vec2: 8, vec4: 16 };
+const sizes = { f32: 4, u32: 4, i32: 4, vec2: 8, vec4: 16, mat3x3: 36 };
 const uniforms = {
     frameCount: 0, // 0
     rez: 768, // 1
@@ -77,7 +77,7 @@ const rayTraceFrameBuffer = await getComputeBuffer(gpu, rayTraceFrameBufferSize,
 const uniformsBufferSize = sizes.f32 * uniformsCount;
 const uniformsBuffer = await getComputeBuffer(gpu, uniformsBufferSize, GPUBufferUsage.COPY_DST | GPUBufferUsage.STORAGE);
 
-const spheresBufferSize = (sizes.vec4 * 3) * MAX_SPHERES;
+const spheresBufferSize = (sizes.vec4 * 3 + sizes.mat3x3) * MAX_SPHERES; // sphere transform, color, radius + bool, matrix
 const spheresBuffer = await getComputeBuffer(gpu, spheresBufferSize, GPUBufferUsage.COPY_DST | GPUBufferUsage.STORAGE);
 
 const quadsBufferSize = (sizes.vec4 * 5) * MAX_QUADS;
@@ -136,7 +136,7 @@ var cameraVelocityConstant = 5.0;
 scenesFolder.add({ CameraVelocity: cameraVelocityConstant }, 'CameraVelocity').name("Camera Velocity").step(0.01).listen().onChange( function() { cameraVelocityConstant = this.object.CameraVelocity; });
 
 scenesFolder.add({ NewScene: () => {
-    spheres = [new Sphere([0, -1001, 0], [0.5, 0.5, 0.5], 1000, [0.9, 0.0, 0.6, 0.0]), new Sphere([0.0, 0.3, -5], [0.8, 0.1, 0.2], 1.3, [0.0, 0.001, 0.0, 0.0])];
+    spheres = [];
     quads = [];
     boxes = [];
     meshes = [];
@@ -471,14 +471,17 @@ function writeBuffer(buffer, size, objectList)
     var offset = 0;
 
     var variables = Object.keys(objectList[0]);
+    
     for (let i = 0; i < objectList.length; i++)
     {
         for (let j = 1; j < variables.length; j++)
         {
+            console.log(variables[j]);
             let lengthOfVariable = 0;
             if (typeof objectList[0][variables[j]] === 'object')
             {
                 lengthOfVariable = objectList[0][variables[j]].length;
+                console.log(lengthOfVariable);
             }
 
             if (lengthOfVariable == 0)
@@ -489,6 +492,7 @@ function writeBuffer(buffer, size, objectList)
 
             for (let k = 0; k < lengthOfVariable; k++)
             {
+                // console.log(objectList[i][variables[j]][k]);
                 objectData[offset++] = objectList[i][variables[j]][k];
             }
         }

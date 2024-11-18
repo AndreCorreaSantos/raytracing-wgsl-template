@@ -38,6 +38,7 @@ struct sphere {
   transform : vec4f,
   color : vec4f,
   material : vec4f,
+  matrix: mat3x3<f32>,
 };
 
 struct quad {

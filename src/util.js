@@ -280,6 +280,10 @@ function timer(ms, callback)
 
 function getSpheresRandom(numSpheres, offset)
 {
+    let dummy_matrix = [0.0, 0.0, 0.0,
+                        0.0,0.0,0.0,
+                        0.0,0.0,0.0
+                        ];
     let spheres = [];
     for (let i = -numSpheres; i < numSpheres; i++)
     {
@@ -313,11 +317,12 @@ function getSpheresRandom(numSpheres, offset)
                     sphereMaterial = [-1.0, absorption, fuzz, 0.0];
                 }
 
-                spheres.push(new Sphere(center, albedo, Math.random() * 0.2 + 0.1, sphereMaterial));
+                spheres.push(new Sphere(center, albedo, Math.random() * 0.2 + 0.1, sphereMaterial,0.0, dummy_matrix));
             }
         }
     }
-
+    // console.log("SPHERE");
+    // console.log(spheres[0]);
     return spheres;
 }
 

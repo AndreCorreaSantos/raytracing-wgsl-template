@@ -4,12 +4,16 @@ class Sphere
     transform = [0.0, 0.0, 0.0, 0.0];
     color = [0.0, 0.0, 0.0, 0.0];
     material = [0.0, 0.0, 0.0, 0.0];
+    matrix =[1.0, 0.0, 0.0,
+            0.0, 1.0, 0.0,
+            0.0, 0.0, 1.0];
 
-    constructor(center, color, radius, material)
+    constructor(center, color, radius, material, matrix)
     {
         this.transform = [center[0], center[1], center[2], radius];
         this.color = [color[0], color[1], color[2], 1.0];
         this.material = material;
+        this.matrix = matrix;
     }
 }
 

@@ -1,7 +1,12 @@
 import { Sphere, Quad, Box, Mesh } from './objects.js';
 import { loadMesh, getObjBoundingBox, getSpheresRandom } from './util.js';
 
-const groundDefault = new Sphere([0, -1001, 0], [0.5, 0.5, 0.5], 1000, [0.9, 0.0, 0.6, 0.0]);
+
+const dummy_matrix =[ 0.0,0.0,0.0,
+					  0.0,0.0,0.0,
+					  0.0,0.0,0.0
+					];
+const groundDefault = new Sphere([0, -1001, 0], [0.5, 0.5, 0.5], 1000, [0.9, 0.0, 0.6, 0.0],0.0, dummy_matrix);
 
 async function getAvailableScene(index, scenesList)
 {
@@ -15,10 +20,12 @@ async function Spheres(numSpheres = 4)
     let offset = [0, -1, -5];
     let spheres = [groundDefault];
     spheres = spheres.concat(getSpheresRandom(numSpheres, offset));
+	
 
-    spheres.push(new Sphere([offset[0], 1.3 + offset[1], offset[2]], [1.0, 1.0, 1.0], 1.3, [-1.0, 0.001, 0.9, 0.0]));
-    spheres.push(new Sphere([-3.3 + offset[0], 1.3 + offset[1], offset[2]], [1.0, 0.1, 0.1], 1.3, [0.0, 0.0, 0.0, 0.0]));
-    spheres.push(new Sphere([3.3 + offset[0], 1.3 + offset[1], offset[2]], [0.7, 0.6, 0.5], 1.3, [1.0, 0.0, 1.0, 0.0]));
+
+    spheres.push(new Sphere([offset[0], 1.3 + offset[1], offset[2]], [1.0, 1.0, 1.0], 1.3, [-1.0, 0.001, 0.9, 0.0], 0.0, dummy_matrix));
+    spheres.push(new Sphere([-3.3 + offset[0], 1.3 + offset[1], offset[2]], [1.0, 0.1, 0.1], 1.3, [0.0, 0.0, 0.0, 0.0],0.0, dummy_matrix));
+    spheres.push(new Sphere([3.3 + offset[0], 1.3 + offset[1], offset[2]], [0.7, 0.6, 0.5], 1.3, [1.0, 0.0, 1.0, 0.0],0.0, dummy_matrix));
 
     return {
         spheres, 
@@ -500,6 +507,32 @@ async function Everything()
         backgroundColor2: [1.0, 1.0, 1.0], 
         focusDistance: 3.0, 
         focusAngle: 0.0,
+        sunIntensity: 1.0,
+        samplesPerPixel: 1.0,
+        maxBounces: 10.0
+    };
+}
+
+async function Splats(numSpheres = 4)
+{
+    let offset = [0, -1, -5];
+    let spheres = [groundDefault];
+    spheres = spheres.concat(getSpheresRandom(numSpheres, offset));
+
+    // spheres.push(new Sphere([offset[0], 1.3 + offset[1], offset[2]], [1.0, 1.0, 1.0], 1.3, [-1.0, 0.001, 0.9, 0.0]));
+    // spheres.push(new Sphere([-3.3 + offset[0], 1.3 + offset[1], offset[2]], [1.0, 0.1, 0.1], 1.3, [0.0, 0.0, 0.0, 0.0]));
+    // spheres.push(new Sphere([3.3 + offset[0], 1.3 + offset[1], offset[2]], [0.7, 0.6, 0.5], 1.3, [1.0, 0.0, 1.0, 0.0]));
+
+    return {
+        spheres, 
+        quads: [], 
+        boxes: [], 
+        triangles: [], 
+        meshes: [], 
+        backgroundColor1: [0.0, 0.5, 1.0], 
+        backgroundColor2: [1.0, 1.0, 1.0], 
+        focusDistance: 5.0, 
+        focusAngle: 0.2,
         sunIntensity: 1.0,
         samplesPerPixel: 1.0,
         maxBounces: 10.0
