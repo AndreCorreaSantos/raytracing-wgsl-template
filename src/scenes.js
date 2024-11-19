@@ -518,14 +518,15 @@ async function Splats(numSpheres = 2)
     let offset = [0, -0.8, -5];
 	let newDefault = {...groundDefault};
 	newDefault.material = [0.0,0.0,0.0,1.8];
-	newDefault.color = [Math.random(),Math.random(),Math.random(),1.0];
+	newDefault.transform[1] = newDefault.transform[1] -0.1;
+	// newDefault.color = [Math.random(),Math.random(),Math.random(),1.0];
     let spheres = [newDefault];
 
     spheres = spheres.concat(getSplatsRandom(numSpheres, offset));
 
-	let scaleX = 5; // Scaling in X-axis
-	let scaleY = 2; // Scaling in Y-axis
-	let scaleZ = 5; // Scaling in Z-axis
+	let scaleX = 4.5; 
+	let scaleY = 2; 
+	let scaleZ = 4.5; 
 
 	let quads = [
 		new Quad(
