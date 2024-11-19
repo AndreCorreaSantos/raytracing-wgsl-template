@@ -344,8 +344,8 @@ function getSplatsRandom(numSpheres, offset)
                 let albedo = [Math.random(), Math.random(), Math.random()];
                 let fuzz = Math.random();
                 let absorption = Math.random();
-                // let light = Math.random() * 5.0 + 1.0;
-                let light = 0.0;
+                let light = Math.random() * 5.0 + 1.0;
+                // let light = 0.0;
                 sphereMaterial = [0.0, 0.0, 0.0, 0.0];
                 if (chooseMat < 0.25)
                 {
@@ -365,9 +365,9 @@ function getSplatsRandom(numSpheres, offset)
                 }
                 // random 3x3 matrix
 
-                let rand1 = (Math.random()+ 0.01)*25.0;
-                let rand2 = (Math.random() + 0.01)*25.0;
-                let rand3 = (Math.random() + 0.01)*25.0;
+                let rand1 = (Math.random()+ 0.001)*25.0;
+                let rand2 = (Math.random() + 0.001)*25.0;
+                let rand3 = (Math.random() + 0.001)*25.0;
 
                 let random_matrix = [rand1, 0.0, 0.0,0.0,
                                     0.0, rand2, 0.0,0.0,
