@@ -518,8 +518,8 @@ async function Splats(numSpheres = 4)
     let offset = [0, -1, -5];
     let spheres = [groundDefault];
     spheres = spheres.concat(getSpheresRandom(numSpheres, offset));
-
-    // spheres.push(new Sphere([offset[0], 1.3 + offset[1], offset[2]], [1.0, 1.0, 1.0], 1.3, [-1.0, 0.001, 0.9, 0.0]));
+	
+    spheres.push(new Sphere([offset[0], 1.3 + offset[1], offset[2]], [1.0, 1.0, 1.0], 1.3, [-1.0, 0.001, 0.9, 0.0]));
     // spheres.push(new Sphere([-3.3 + offset[0], 1.3 + offset[1], offset[2]], [1.0, 0.1, 0.1], 1.3, [0.0, 0.0, 0.0, 0.0]));
     // spheres.push(new Sphere([3.3 + offset[0], 1.3 + offset[1], offset[2]], [0.7, 0.6, 0.5], 1.3, [1.0, 0.0, 1.0, 0.0]));
 

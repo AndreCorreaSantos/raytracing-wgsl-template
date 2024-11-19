@@ -183,23 +183,23 @@ fn check_ray_collision(r: ray, max: f32) -> hit_record
   {
     var sp_ = spheresb[i];
     var rec_ = hit_record(RAY_TMAX, vec3f(0.0), vec3f(0.0), vec4f(0.0), vec4f(0.0), false, false);
-    var is_gaussian = is_any_element_non_zero(sp_.matrix);
-    
-    // if(is_gaussian)
-    // {
-      // var cov_matrix = get_mat3x3(sp_.matrix);// getting the 3x3 cov matrix from the 4x4 mat;
-      // hit_gaussian(sp_.transform.xyz,cov_matrix,r_,&rec_,min_t);
-    // }
-    // else{
-    //   hit_sphere(sp_.transform.xyz,sp_.transform.w,r_,&rec_,min_t);
-    // }
-    // var cov_matrix = get_mat3x3(sp_.matrix);// getting the 3x3 cov matrix from the 4x4 mat;
+    var is_gaussian = length(sp_.matrix[3].xyz) >0.0;
     var cov_matrix = mat3x3<f32>(
-          vec3<f32>(10.0, 0.0, 0.0), // First row
-          vec3<f32>(0.0, 100.0, 0.0), // Second row
-          vec3<f32>(0.0, 0.0, 1.0)  // Third row
+      vec3<f32>(0.1, 0.0, 0.0), // First row
+      vec3<f32>(0.0, 0.1, 0.0), // Second row
+      vec3<f32>(0.0, 0.0, 0.1)  // Third row
       );
-    hit_gaussian(sp_.transform.xyz,cov_matrix,r_,&rec_,min_t);
+    if(is_gaussian)
+    {
+      // var cov_matrix = get_mat3x3(sp_.matrix);// getting the 3x3 cov matrix from the 4x4 mat;
+      hit_gaussian(sp_.transform.xyz,cov_matrix,r_,&rec_,min_t);
+    }
+    else{
+      hit_sphere(sp_.transform.xyz,sp_.transform.w,r_,&rec_,min_t);
+    }
+    // var cov_matrix = get_mat3x3(sp_.matrix);// getting the 3x3 cov matrix from the 4x4 mat;
+
+    // hit_gaussian(sp_.transform.xyz,cov_matrix,r_,&rec_,min_t);
 
     if(rec_.hit_anything)
     {
