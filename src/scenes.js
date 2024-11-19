@@ -535,7 +535,7 @@ async function Splats(numSpheres = 4)
         backgroundColor1: [0.0, 0.5, 1.0], 
         backgroundColor2: [1.0, 1.0, 1.0], 
         focusDistance: 5.0, 
-        focusAngle: 0.2,
+        focusAngle: 0.0,
         sunIntensity: 1.0,
         samplesPerPixel: 1.0,
         maxBounces: 10.0
