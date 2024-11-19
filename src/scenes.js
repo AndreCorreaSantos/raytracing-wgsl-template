@@ -516,7 +516,10 @@ async function Everything()
 async function Splats(numSpheres = 6)
 {
     let offset = [0, -0.8, -5];
-    let spheres = [groundDefault];
+	let newDefault = {...groundDefault};
+	newDefault.material = [0.0,0.0,0.0,3.0];
+    let spheres = [newDefault];
+
     spheres = spheres.concat(getSplatsRandom(numSpheres, offset));
 
     // spheres.push(new Sphere([offset[0], 1.3 + offset[1], offset[2]], [1.0, 1.0, 1.0], 1.3, [-1.0, 0.001, 0.9, 0.0],new_mat));
@@ -529,11 +532,11 @@ async function Splats(numSpheres = 6)
         boxes: [], 
         triangles: [], 
         meshes: [], 
-        backgroundColor1: [0.0, 0.5, 1.0], 
-        backgroundColor2: [1.0, 1.0, 1.0], 
+        backgroundColor1: [0.0, 0.0, 0.0], 
+        backgroundColor2: [0.0, 0.0, 0.0], 
         focusDistance: 5.0, 
         focusAngle: 0.0,
-        sunIntensity: 1.0,
+        sunIntensity: 0.0,
         samplesPerPixel: 1.0,
         maxBounces: 10.0
     };

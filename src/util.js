@@ -336,7 +336,7 @@ function getSplatsRandom(numSpheres, offset)
         for (let j = -numSpheres; j < numSpheres; j++)
         {
             let chooseMat = Math.random();
-            let center = [i + 0.9 * Math.random() + offset[0], 0.2 + offset[1], j + 0.9 * Math.random() + offset[2]];
+            let center = [i + 0.9 * Math.random() + offset[0], 0.2 + offset[1] + Math.random(), j + 0.9 * Math.random() + offset[2]];
 
             if (Math.sqrt((center[0] - 4) ** 2 + (center[1] - 0.2) ** 2 + (center[2] - 0) ** 2) > 0.9)
             {
@@ -344,24 +344,25 @@ function getSplatsRandom(numSpheres, offset)
                 let albedo = [Math.random(), Math.random(), Math.random()];
                 let fuzz = Math.random();
                 let absorption = Math.random();
-                let light = Math.random() * 5.0 + 1.0;
-
-                if (chooseMat < 0.25)
-                {
-                    sphereMaterial = [0.0, 0.0, 0.0, 0.0];
-                }
-                else if (chooseMat < .5)
-                {
-                    sphereMaterial = [1.0, absorption, fuzz, 0.0];
-                }
-                else if (chooseMat < .75)
-                {
-                    sphereMaterial = [0.0, 0.0, 0.0, light];
-                }
-                else
-                {
-                    sphereMaterial = [-1.0, absorption, fuzz, 0.0];
-                }
+                // let light = Math.random() * 5.0 + 1.0;
+                let light = 0.0;
+                sphereMaterial = [0.0, 0.0, 0.0, 0.0];
+                // if (chooseMat < 0.25)
+                // {
+                //     sphereMaterial = [0.0, 0.0, 0.0, 0.0];
+                // }
+                // else if (chooseMat < .5) // metalic
+                // {
+                //     sphereMaterial = [1.0, absorption, fuzz, 0.0];
+                // }
+                // else if (chooseMat < .75)
+                // {
+                //     sphereMaterial = [0.0, 0.0, 0.0, light];
+                // }
+                // else
+                // {
+                //     sphereMaterial = [-1.0, absorption, fuzz, 0.0];
+                // }
                 // random 3x3 matrix
 
                 let rand1 = (Math.random()+ 0.01)*50.0;
