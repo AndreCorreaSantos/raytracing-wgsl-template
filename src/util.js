@@ -324,6 +324,62 @@ function getSpheresRandom(numSpheres, offset)
     return spheres;
 }
 
+function getSplatsRandom(numSpheres, offset)
+{
+    let dummy_matrix = [0.0, 0.0, 0.0,
+                        0.0,0.0,0.0,
+                        0.0,0.0,0.0
+                        ];
+    let spheres = [];
+    for (let i = -numSpheres; i < numSpheres; i++)
+    {
+        for (let j = -numSpheres; j < numSpheres; j++)
+        {
+            let chooseMat = Math.random();
+            let center = [i + 0.9 * Math.random() + offset[0], 0.2 + offset[1], j + 0.9 * Math.random() + offset[2]];
+
+            if (Math.sqrt((center[0] - 4) ** 2 + (center[1] - 0.2) ** 2 + (center[2] - 0) ** 2) > 0.9)
+            {
+                let sphereMaterial = [];
+                let albedo = [Math.random(), Math.random(), Math.random()];
+                let fuzz = Math.random();
+                let absorption = Math.random();
+                let light = Math.random() * 5.0 + 1.0;
+
+                if (chooseMat < 0.25)
+                {
+                    sphereMaterial = [0.0, 0.0, 0.0, 0.0];
+                }
+                else if (chooseMat < .5)
+                {
+                    sphereMaterial = [1.0, absorption, fuzz, 0.0];
+                }
+                else if (chooseMat < .75)
+                {
+                    sphereMaterial = [0.0, 0.0, 0.0, light];
+                }
+                else
+                {
+                    sphereMaterial = [-1.0, absorption, fuzz, 0.0];
+                }
+                // random 3x3 matrix
+                let rand1 = Math.random()+0.01;
+                let rand2 = Math.random() + 0.01;
+                let rand3 = Math.random() + 0.01;
+                let random_matrix = [rand1, 0.0, 0.0,0.0,
+                                    0.0, rand2, 0.0,0.0,
+                                    0.0, 0.0, rand3,0.0,
+                                    0.0, 0.0, 0.0, 0.0
+                                    ];
+                
+                var sp_ = new Sphere(center, albedo, Math.random() * 0.2 + 0.1, sphereMaterial,random_matrix);
+                spheres.push(sp_);
+            }
+        }
+    }
+    return spheres;
+}
+
 async function getFunctionsInFile(filepath) {
 
     let fileContent = await load(filepath);
@@ -372,4 +428,4 @@ async function crateAllScenesList()
     return sceneList;
 }
 
-export { getGPU, getCanvas, getComputeBuffer, getComputeBufferLayout, load, getModule, getRenderPipeline, readObj, timer, getObjBoundingBox, RGBToInt, IntToRGB, RGBToHex, loadMesh, crateAllScenesList, getSpheresRandom };
+export { getGPU, getCanvas, getComputeBuffer, getComputeBufferLayout, load, getModule, getRenderPipeline, readObj, timer, getObjBoundingBox, RGBToInt, IntToRGB, RGBToHex, loadMesh, crateAllScenesList, getSpheresRandom, getSplatsRandom };
