@@ -513,16 +513,13 @@ async function Everything()
     };
 }
 
-async function Splats(numSpheres = 4)
+async function Splats(numSpheres = 6)
 {
-    let offset = [0, -1, -5];
+    let offset = [0, -0.8, -5];
     let spheres = [groundDefault];
     spheres = spheres.concat(getSplatsRandom(numSpheres, offset));
-	console.log("SPHERES",spheres[0]);
-	let d2 = { ...dummy_matrix };
-	d2[0] = 1.0;
 
-    // spheres.push(new Sphere([offset[0], 1.3 + offset[1], offset[2]], [1.0, 1.0, 1.0], 1.3, [-1.0, 0.001, 0.9, 0.0],d2));
+    // spheres.push(new Sphere([offset[0], 1.3 + offset[1], offset[2]], [1.0, 1.0, 1.0], 1.3, [-1.0, 0.001, 0.9, 0.0],new_mat));
     // spheres.push(new Sphere([-3.3 + offset[0], 1.3 + offset[1], offset[2]], [1.0, 0.1, 0.1], 1.3, [0.0, 0.0, 0.0, 0.0]));
     // spheres.push(new Sphere([3.3 + offset[0], 1.3 + offset[1], offset[2]], [0.7, 0.6, 0.5], 1.3, [1.0, 0.0, 1.0, 0.0]));
 

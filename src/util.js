@@ -364,9 +364,9 @@ function getSplatsRandom(numSpheres, offset)
                 }
                 // random 3x3 matrix
 
-                let rand1 = (Math.random()+ 0.01)*150.0;
-                let rand2 = (Math.random() + 0.01)*150.0;
-                let rand3 = (Math.random() + 0.01)*150.0;
+                let rand1 = (Math.random()+ 0.01)*50.0;
+                let rand2 = (Math.random() + 0.01)*50.0;
+                let rand3 = (Math.random() + 0.01)*50.0;
 
                 let random_matrix = [rand1, 0.0, 0.0,0.0,
                                     0.0, rand2, 0.0,0.0,

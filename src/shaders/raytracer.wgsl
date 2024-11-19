@@ -226,9 +226,15 @@ fn check_ray_collision(r: ray, max: f32) -> hit_record
   // boxes
   for (var i = 0; i<boxesCount; i++ )
   {
+   
+
     var box_ =  boxesb[i];
+    var quat = quaternion_from_euler(box_.rotation.xyz);
+    var _quat  = q_inverse(quat);
+    var rr = rotate_ray_quaternion(r_,box_.center.xyz,quat);
+
     var rec_ = hit_record(RAY_TMAX, vec3f(0.0), vec3f(0.0), vec4f(0.0), vec4f(0.0), false, false);
-    hit_box(r_,box_.center.xyz,box_.radius.xyz,box_.rotation,&rec_,min_t);
+    hit_box(rr,box_.center.xyz,box_.radius.xyz,box_.rotation,&rec_,min_t);
     if(rec_.hit_anything)
     {
       min_t = rec_.t;
@@ -240,40 +246,50 @@ fn check_ray_collision(r: ray, max: f32) -> hit_record
   // meshes
   for (var i = 0; i < meshCount; i++) {
       var m = meshb[i];
-      // bounding box hit check
-      var new_record = hit_record(RAY_TMAX, vec3f(0.0), vec3f(0.0), vec4f(0.0), vec4f(0.0), false, false);
-      var center = (m.min.xyz + m.max.xyz) * 0.5;
-      var radius = (m.max.xyz - m.min.xyz) * 0.5;
-      hit_box(r, center, radius,vec4f(0.0), &new_record, max);
+
+      var quat = quaternion_from_euler(m.rotation.xyz);
+      var _quat = q_inverse(quat);
+      var rr = rotate_ray_quaternion(r_, m.transform.xyz, quat);
+
+      // Using utils code
+      if (!AABB_intersect(rr, m.min.xyz * m.scale.xyz + m.transform.xyz, m.max.xyz * m.scale.xyz + m.transform.xyz)) {
+          continue;
+      }
 
       if (m.show_bb > 0.0) {
+          var rec_ = hit_record(RAY_TMAX, vec3f(0.0), vec3f(0.0), vec4f(0.0), vec4f(0.0), false, false);
+          var center = (m.min.xyz + m.max.xyz) * 0.5 * m.scale.xyz;
+          var radius = (m.max.xyz - m.min.xyz) * 0.5 * m.scale.xyz;
+          hit_box(rr, center, radius,vec4f(0.0), &rec_, max);
+
           // Bounding box hit check
-          if (new_record.hit_anything && new_record.t < closest.t) {
-              closest = new_record;
+          if (rec_.hit_anything && rec_.t < closest.t) {
+              rec_.normal = rotate_vector(rec_.normal, _quat);
+              rec_.p = rotate_vector(rec_.p - m.transform.xyz, _quat) + m.transform.xyz;
+              closest = rec_;
               closest.object_color = m.color;
               closest.object_material = m.material;
           }
       } else {
-          if (new_record.hit_anything)
-          {
-            for (var j = i32(m.start); j < i32(m.end); j++) {
-                var tri_ = trianglesb[j];
-                new_record = hit_record(RAY_TMAX, vec3f(0.0), vec3f(0.0), vec4f(0.0), vec4f(0.0), false, false);
+          for (var j = i32(m.start); j < i32(m.end); j++) {
+              var rec_ = hit_record(RAY_TMAX, vec3f(0.0), vec3f(0.0), vec4f(0.0), vec4f(0.0), false, false);
+              var tri_ = trianglesb[j];
 
-                var v0 = tri_.v0.xyz;
-                var v1 = tri_.v1.xyz;
-                var v2 = tri_.v2.xyz;
+              // Apply scaling and transformation to the vertices
+              var v0 = tri_.v0.xyz * m.scale.xyz + m.transform.xyz;
+              var v1 = tri_.v1.xyz * m.scale.xyz + m.transform.xyz;
+              var v2 = tri_.v2.xyz * m.scale.xyz + m.transform.xyz;
 
-                hit_triangle(r, v0, v1, v2, &new_record, max);
+              hit_triangle(rr, v0, v1, v2, &rec_, max);
 
-                if (new_record.hit_anything && new_record.t < closest.t) {
-                    closest = new_record;
-                    closest.object_color = m.color;
-                    closest.object_material = m.material;
-                }
-            }
+              if (rec_.hit_anything && rec_.t < closest.t) {
+                  rec_.normal = rotate_vector(rec_.normal, _quat);
+                  rec_.p = rotate_vector(rec_.p - m.transform.xyz, _quat) + m.transform.xyz;
+                  closest = rec_;
+                  closest.object_color = m.color;
+                  closest.object_material = m.material;
+              }
           }
-
       }
   }
 
