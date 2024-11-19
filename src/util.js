@@ -317,12 +317,10 @@ function getSpheresRandom(numSpheres, offset)
                     sphereMaterial = [-1.0, absorption, fuzz, 0.0];
                 }
 
-                spheres.push(new Sphere(center, albedo, Math.random() * 0.2 + 0.1, sphereMaterial,0.0, dummy_matrix));
+                spheres.push(new Sphere(center, albedo, Math.random() * 0.2 + 0.1, sphereMaterial,0.0));
             }
         }
     }
-    // console.log("SPHERE");
-    // console.log(spheres[0]);
     return spheres;
 }
 
