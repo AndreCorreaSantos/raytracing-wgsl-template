@@ -513,14 +513,64 @@ async function Everything()
     };
 }
 
-async function Splats(numSpheres = 6)
+async function Splats(numSpheres = 2)
 {
     let offset = [0, -0.8, -5];
 	let newDefault = {...groundDefault};
-	newDefault.material = [0.0,0.0,0.0,3.0];
+	newDefault.material = [0.0,0.0,0.0,1.8];
+	newDefault.color = [Math.random(),Math.random(),Math.random(),1.0];
     let spheres = [newDefault];
 
     spheres = spheres.concat(getSplatsRandom(numSpheres, offset));
+
+	let scaleX = 5; // Scaling in X-axis
+	let scaleY = 2; // Scaling in Y-axis
+	let scaleZ = 5; // Scaling in Z-axis
+
+	let quads = [
+		new Quad(
+			[-1 * scaleX, -1 * scaleY, 0 * scaleZ, 0], 
+			[0 * scaleX, 0 * scaleY, -2 * scaleZ, 0], 
+			[0 * scaleX, 2 * scaleY, 0 * scaleZ, 0], 
+			[1, 1, 1, 1], 
+			[1, 0.005, 1, 0]
+		),
+		new Quad(
+			[-1 * scaleX, -1 * scaleY, -2 * scaleZ, 0], 
+			[2 * scaleX, 0 * scaleY, 0 * scaleZ, 0], 
+			[0 * scaleX, 2 * scaleY, 0 * scaleZ, 0], 
+			[1, 1, 1, 1], 
+			[1, 0.005, 1, 0]
+		),
+		new Quad(
+			[-1 * scaleX, 1 * scaleY, -2 * scaleZ, 0], 
+			[2 * scaleX, 0 * scaleY, 0 * scaleZ, 0], 
+			[0 * scaleX, 0 * scaleY, 2 * scaleZ, 0], 
+			[1, 1, 1, 1], 
+			[1, 0.005, 1, 0]
+		),
+		new Quad(
+			[1 * scaleX, -1 * scaleY, -2 * scaleZ, 0], 
+			[0 * scaleX, 0 * scaleY, 2 * scaleZ, 0], 
+			[0 * scaleX, 2 * scaleY, 0 * scaleZ, 0], 
+			[1, 1, 1, 1], 
+			[1, 0.005, 1, 0]
+		),
+		new Quad(
+			[1 * scaleX, -1 * scaleY, -2 * scaleZ, 0], 
+			[-2 * scaleX, 0 * scaleY, 0 * scaleZ, 0], 
+			[0 * scaleX, 0 * scaleY, 2 * scaleZ, 0], 
+			[1, 1, 1, 1], 
+			[1, 0.005, 1, 0]
+		),
+		new Quad(
+			[1 * scaleX, -1 * scaleY, 0 * scaleZ, 0], 
+			[-2 * scaleX, 0 * scaleY, 0 * scaleZ, 0], 
+			[0 * scaleX, 2 * scaleY, 0 * scaleZ, 0], 
+			[1, 1, 1, 1], 
+			[1, 0.005, 1, 0]
+		),
+	];
 
     // spheres.push(new Sphere([offset[0], 1.3 + offset[1], offset[2]], [1.0, 1.0, 1.0], 1.3, [-1.0, 0.001, 0.9, 0.0],new_mat));
     // spheres.push(new Sphere([-3.3 + offset[0], 1.3 + offset[1], offset[2]], [1.0, 0.1, 0.1], 1.3, [0.0, 0.0, 0.0, 0.0]));
@@ -528,7 +578,7 @@ async function Splats(numSpheres = 6)
 
     return {
         spheres, 
-        quads: [], 
+        quads: quads, 
         boxes: [], 
         triangles: [], 
         meshes: [], 
