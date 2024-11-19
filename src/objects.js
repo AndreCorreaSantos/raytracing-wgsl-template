@@ -4,9 +4,12 @@ class Sphere
     transform = [0.0, 0.0, 0.0, 0.0];
     color = [0.0, 0.0, 0.0, 0.0];
     material = [0.0, 0.0, 0.0, 0.0];
-    matrix =[1.0, 0.0, 0.0,
-            0.0, 1.0, 0.0,
-            0.0, 0.0, 1.0];
+    matrix =[   
+            0.0, 0.0, 0.0,0.0,
+            0.0,0.0, 0.0, 0.0,
+            0.0,0.0, 0.0, 0.0,
+            0.0, 0.0, 0.0, 0.0
+            ];
 
     constructor(center, color, radius, material, matrix)
     {

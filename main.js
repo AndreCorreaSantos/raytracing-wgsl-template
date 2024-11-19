@@ -28,7 +28,7 @@ let cameraVelocity = [0.0, 0.0, 0.0];
 let cameraRotationVelocity = [0.0, 0.0, 0.0];
 let performanceStats = { ms: 0, fps: 0 };
 
-const sizes = { f32: 4, u32: 4, i32: 4, vec2: 8, vec4: 16, mat3x3: 36 };
+const sizes = { f32: 4, u32: 4, i32: 4, vec2: 8, vec4: 16, mat4x4: 64 };
 const uniforms = {
     frameCount: 0, // 0
     rez: 768, // 1
@@ -77,7 +77,7 @@ const rayTraceFrameBuffer = await getComputeBuffer(gpu, rayTraceFrameBufferSize,
 const uniformsBufferSize = sizes.f32 * uniformsCount;
 const uniformsBuffer = await getComputeBuffer(gpu, uniformsBufferSize, GPUBufferUsage.COPY_DST | GPUBufferUsage.STORAGE);
 
-const spheresBufferSize = (sizes.vec4 * 3 + sizes.mat3x3) * MAX_SPHERES; // sphere transform, color, radius + bool, matrix
+const spheresBufferSize = (sizes.vec4 * 3 + sizes.mat4x4) * MAX_SPHERES; // sphere transform, color, radius + bool, matrix
 const spheresBuffer = await getComputeBuffer(gpu, spheresBufferSize, GPUBufferUsage.COPY_DST | GPUBufferUsage.STORAGE);
 
 const quadsBufferSize = (sizes.vec4 * 5) * MAX_QUADS;
@@ -477,6 +477,8 @@ function writeBuffer(buffer, size, objectList)
         for (let j = 1; j < variables.length; j++)
         {
             console.log(variables[j]);
+            console.log(typeof objectList[0][variables[j]]);
+            console.log(objectList[0][variables[j]]);
             let lengthOfVariable = 0;
             if (typeof objectList[0][variables[j]] === 'object')
             {

@@ -32,6 +32,47 @@ fn hit_sphere(center: vec3f, radius: f32, r: ray, record: ptr<function, hit_reco
     record.hit_anything = true;
 }
 
+fn hit_gaussian(center: vec3f, covariance_inverse: mat3x3f, r: ray, record: ptr<function, hit_record>, max: f32) {
+    var q = r.origin - center;
+
+    // Quadratic coefficients
+    var a = dot(r.direction, covariance_inverse * r.direction);
+    var b = 2.0 * dot(q, covariance_inverse * r.direction);
+    var c = dot(q, covariance_inverse * q) - 1.0;
+
+    // Discriminant
+    var disc = b * b - 4.0 * a * c;
+
+    if (disc < 0.0) {
+        record.hit_anything = false;
+        return;
+    }
+
+    var sqrt_disc = sqrt(disc);
+    var t1 = (-b - sqrt_disc) / (2.0 * a);
+    var t2 = (-b + sqrt_disc) / (2.0 * a);
+
+    // Select the closest valid t
+    var t = t1;
+    if (t < 0.0 || t > max) {
+        t = t2;
+        if (t < 0.0 || t > max) {
+            record.hit_anything = false;
+            return;
+        }
+    }
+
+    // Compute intersection point and normal
+    var intersection = ray_at(r, t);
+    var normal = normalize((covariance_inverse * (intersection - center)).xyz);
+
+    // Update the record
+    record.t = t;
+    record.p = intersection;
+    record.normal = normal;
+    record.hit_anything = true;
+}
+
 
 fn hit_quad(r: ray, Q: vec4f, u: vec4f, v: vec4f, record: ptr<function, hit_record>, max: f32)
 {

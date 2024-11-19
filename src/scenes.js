@@ -2,11 +2,13 @@ import { Sphere, Quad, Box, Mesh } from './objects.js';
 import { loadMesh, getObjBoundingBox, getSpheresRandom } from './util.js';
 
 
-const dummy_matrix =[ 0.0,0.0,0.0,
-					  0.0,0.0,0.0,
-					  0.0,0.0,0.0
+const dummy_matrix =[   
+					0.0, 0.0, 0.0,0.0,
+					0.0,0.0, 0.0, 0.0,
+					0.0,0.0, 0.0, 0.0,
+					0.0, 0.0, 0.0, 0.0
 					];
-const groundDefault = new Sphere([0, -1001, 0], [0.5, 0.5, 0.5], 1000, [0.9, 0.0, 0.6, 0.0],0.0, dummy_matrix);
+const groundDefault = new Sphere([0, -1001, 0], [0.5, 0.5, 0.5], 1000, [0.9, 0.0, 0.6, 0.0], dummy_matrix);
 
 async function getAvailableScene(index, scenesList)
 {
@@ -20,12 +22,10 @@ async function Spheres(numSpheres = 4)
     let offset = [0, -1, -5];
     let spheres = [groundDefault];
     spheres = spheres.concat(getSpheresRandom(numSpheres, offset));
-	
 
-
-    spheres.push(new Sphere([offset[0], 1.3 + offset[1], offset[2]], [1.0, 1.0, 1.0], 1.3, [-1.0, 0.001, 0.9, 0.0], 0.0, dummy_matrix));
-    spheres.push(new Sphere([-3.3 + offset[0], 1.3 + offset[1], offset[2]], [1.0, 0.1, 0.1], 1.3, [0.0, 0.0, 0.0, 0.0],0.0, dummy_matrix));
-    spheres.push(new Sphere([3.3 + offset[0], 1.3 + offset[1], offset[2]], [0.7, 0.6, 0.5], 1.3, [1.0, 0.0, 1.0, 0.0],0.0, dummy_matrix));
+    spheres.push(new Sphere([offset[0], 1.3 + offset[1], offset[2]], [1.0, 1.0, 1.0], 1.3, [-1.0, 0.001, 0.9, 0.0], dummy_matrix));
+    spheres.push(new Sphere([-3.3 + offset[0], 1.3 + offset[1], offset[2]], [1.0, 0.1, 0.1], 1.3, [0.0, 0.0, 0.0, 0.0], dummy_matrix));
+    spheres.push(new Sphere([3.3 + offset[0], 1.3 + offset[1], offset[2]], [0.7, 0.6, 0.5], 1.3, [1.0, 0.0, 1.0, 0.0], dummy_matrix));
 
     return {
         spheres, 
@@ -89,11 +89,11 @@ async function Basic()
 async function Metal() 
 {
 	let spheres = [
-		new Sphere([0, -1001, 0], [0.10980392156862745, 0.12156862745098039, 0.2901960784313726], 1000, [1, 0, 0.01, 0]), 
-		new Sphere([0, -0.26, -2], [1, 0, 0], 0.5, [1, 0, 1, 0]), 
-		new Sphere([-1, -0.5, -2], [1, 0, 0], 0.5, [1, 0, 1, 0]), 
-		new Sphere([1, -0.5, -2], [1, 0, 0], 0.5, [1, 0, 1, 0]), 
-		new Sphere([0.01, 0.51, -1.9], [0.4, 0.9, 0.8], 0.23, [1, 0, 1, 0]), 
+		new Sphere([0, -1001, 0], [0.10980392156862745, 0.12156862745098039, 0.2901960784313726], 1000, [1, 0, 0.01, 0],dummy_matrix), 
+		new Sphere([0, -0.26, -2], [1, 0, 0], 0.5, [1, 0, 1, 0],dummy_matrix), 
+		new Sphere([-1, -0.5, -2], [1, 0, 0], 0.5, [1, 0, 1, 0],dummy_matrix), 
+		new Sphere([1, -0.5, -2], [1, 0, 0], 0.5, [1, 0, 1, 0],dummy_matrix), 
+		new Sphere([0.01, 0.51, -1.9], [0.4, 0.9, 0.8], 0.23, [1, 0, 1, 0],dummy_matrix), 
 	];
 
 	let quads = [
@@ -121,10 +121,10 @@ async function Metal()
 async function Fuzz() 
 {
 	let spheres = [
-		new Sphere([0, -1001, 0], [0.21568627450980393, 0.21568627450980393, 0.40784313725490196], 1000, [0, 0, 0, 0]), 
-		new Sphere([0, -0.2, -2], [1, 0, 0], 0.5, [1, 0.1, 1, 0]), 
-		new Sphere([-1, -0.5, -2], [1, 0, 0], 0.5, [1, 0.5, 1, 0]), 
-		new Sphere([1, -0.5, -2], [1, 0, 0], 0.5, [1, 0, 1, 0]), 
+		new Sphere([0, -1001, 0], [0.21568627450980393, 0.21568627450980393, 0.40784313725490196], 1000, [0, 0, 0, 0],dummy_matrix), 
+		new Sphere([0, -0.2, -2], [1, 0, 0], 0.5, [1, 0.1, 1, 0],dummy_matrix), 
+		new Sphere([-1, -0.5, -2], [1, 0, 0], 0.5, [1, 0.5, 1, 0],dummy_matrix), 
+		new Sphere([1, -0.5, -2], [1, 0, 0], 0.5, [1, 0, 1, 0],dummy_matrix), 
 	];
 
 	let quads = [
@@ -152,10 +152,10 @@ async function Fuzz()
 async function Specular() 
 {
 	let spheres = [
-		new Sphere([0, -1001, 0], [0, 0.25098039215686274, 1], 1000, [0.74, 0, 1, 0]), 
-		new Sphere([0, -0.5, -2], [1, 1, 1], 0.5, [1, 0, 0.1, 0]), 
-		new Sphere([-1, -0.5, -2], [1, 1, 1], 0.5, [1, 0, 0.02, 0]), 
-		new Sphere([1, -0.5, -2], [1, 0, 0], 0.5, [1, 0, 1, 0]), 
+		new Sphere([0, -1001, 0], [0, 0.25098039215686274, 1], 1000, [0.74, 0, 1, 0],dummy_matrix), 
+		new Sphere([0, -0.5, -2], [1, 1, 1], 0.5, [1, 0, 0.1, 0],dummy_matrix), 
+		new Sphere([-1, -0.5, -2], [1, 1, 1], 0.5, [1, 0, 0.02, 0],dummy_matrix), 
+		new Sphere([1, -0.5, -2], [1, 0, 0], 0.5, [1, 0, 1, 0],dummy_matrix), 
 	];
 
 	let quads = [
@@ -185,8 +185,8 @@ async function Emissive()
 {
     let spheres = [
         groundDefault,
-        new Sphere([.5, 0., -2.5], [1.0, 0.0, 0.0], 1.0, [0.0, 0.0, 0.0, 0.0]),
-        new Sphere([-1.0, -0.5, -2.0], [1.0, 1.0, 1.0], 0.5, [0.0, 0.0, 0.0, 3.0]),
+        new Sphere([.5, 0., -2.5], [1.0, 0.0, 0.0], 1.0, [0.0, 0.0, 0.0, 0.0],dummy_matrix),
+        new Sphere([-1.0, -0.5, -2.0], [1.0, 1.0, 1.0], 0.5, [0.0, 0.0, 0.0, 3.0],dummy_matrix),
     ];
 
     return {
@@ -209,9 +209,9 @@ async function Dielectric()
 {
     let spheres = [
         groundDefault,
-        new Sphere([0.0, -0.5, -4.0], [1.0, 0.0, 0.0], 0.5, [0.0, 0.0, 0.0, 0.0]),
-        new Sphere([-0.2, 0.7, -4.0], [0.0, 0.0, 1.0], 0.5, [0.0, 0.0, 0.0, 0.0]),
-        new Sphere([0.0, 0.0, -2.1], [1.0, 1.0, 1.0], 1, [-1.0, 0.0, 0.9, 0.0]),
+        new Sphere([0.0, -0.5, -4.0], [1.0, 0.0, 0.0], 0.5, [0.0, 0.0, 0.0, 0.0],dummy_matrix),
+        new Sphere([-0.2, 0.7, -4.0], [0.0, 0.0, 1.0], 0.5, [0.0, 0.0, 0.0, 0.0],dummy_matrix),
+        new Sphere([0.0, 0.0, -2.1], [1.0, 1.0, 1.0], 1, [-1.0, 0.0, 0.9, 0.0],dummy_matrix),
     ];
 
     return {
@@ -233,16 +233,16 @@ async function Dielectric()
 async function Cubes() 
 {
 	let spheres = [
-		new Sphere([0, -1001, 0], [0.5, 0.5, 0.5], 1000, [0.9, 0, 0.6, 0]), 
-		new Sphere([0, 0.49, -1.5], [0.4, 0.9, 0.8], 0.25, [1, 0, 1, 0]), 
+		new Sphere([0, -1001, 0], [0.5, 0.5, 0.5], 1000, [0.9, 0, 0.6, 0],dummy_matrix), 
+		new Sphere([0, 0.49, -1.5], [0.4, 0.9, 0.8], 0.25, [1, 0, 1, 0],dummy_matrix), 
 	];
 
 	let quads = [
 	];
 
 	let boxes = [
-		new Box([-1, 0, -2.23, 0], [1, 0, 0], [0, 0, 0, 0], [0.5, 0.5, 0.5, 0], [0, 0, 0, 0]), 
-		new Box([1, 0, -2.21, 0], [1, 1, 1], [0, 0, 0, 0], [0.5, 0.5, 0.5, 0], [0, 0, 0, 0]), 
+		new Box([-1, 0, -2.23, 0], [1, 0, 0], [0, 0, 0, 0], [0.5, 0.5, 0.5, 0], [0, 0, 0, 0],dummy_matrix), 
+		new Box([1, 0, -2.21, 0], [1, 1, 1], [0, 0, 0, 0], [0.5, 0.5, 0.5, 0], [0, 0, 0, 0],dummy_matrix), 
 	];
 
 	return {
@@ -264,8 +264,8 @@ async function Cubes()
 async function Cornell() 
 {
 	let spheres = [
-		new Sphere([-0.5, -0.4, -1.4], [1, 1, 1], 0.5, [0, 0, 0, 0]), 
-		new Sphere([0.07, 0.42, -1.5], [0.4, 0.9, 0.8], 0.39, [1, 0, 0.7, 0]), 
+		new Sphere([-0.5, -0.4, -1.4], [1, 1, 1], 0.5, [0, 0, 0, 0],dummy_matrix), 
+		new Sphere([0.07, 0.42, -1.5], [0.4, 0.9, 0.8], 0.39, [1, 0, 0.7, 0],dummy_matrix), 
 	];
 
 	let quads = [
@@ -308,8 +308,8 @@ async function Cornell()
 async function Mirror() 
 {
 	let spheres = [
-		new Sphere([0.3, 0, -1.4], [0.023529411764705882, 0.9764705882352941, 0.7843137254901961], 0.5, [0, 0, 0, 0]), 
-		new Sphere([-0.5, -0.4, -1.4], [0.34901960784313724, 0, 1], 0.3, [1, 0, 0.5, 0]), 
+		new Sphere([0.3, 0, -1.4], [0.023529411764705882, 0.9764705882352941, 0.7843137254901961], 0.5, [0, 0, 0, 0],dummy_matrix), 
+		new Sphere([-0.5, -0.4, -1.4], [0.34901960784313724, 0, 1], 0.3, [1, 0, 0.5, 0],dummy_matrix), 
 	];
 
 	let quads = [
@@ -351,9 +351,9 @@ async function Mirror()
 async function Infinite() 
 {
 	let spheres = [
-		new Sphere([0.3, 0, -1], [0.4, 0.9, 0.8], 0.3, [0, 0, 0, 0]), 
-		new Sphere([-0.5, -0.4, -1], [1, 1, 1], -0.25, [0, 0, 0, 1]), 
-		new Sphere([-0.32, 0.5, -1], [1, 0, 0], 0.2, [1, 0, 1, 0]), 
+		new Sphere([0.3, 0, -1], [0.4, 0.9, 0.8], 0.3, [0, 0, 0, 0],dummy_matrix), 
+		new Sphere([-0.5, -0.4, -1], [1, 1, 1], -0.25, [0, 0, 0, 1],dummy_matrix), 
+		new Sphere([-0.32, 0.5, -1], [1, 0, 0], 0.2, [1, 0, 1, 0],dummy_matrix), 
 	];
 
 	let quads = [
@@ -444,9 +444,9 @@ async function Suzzanne()
 async function Rotation() 
 {
 	let spheres = [
-		new Sphere([0, -1001, 0], [0.5, 0.5, 0.5], 1000, [0.9, 0, 0.6, 0]), 
-		new Sphere([0, -0.58, -2.34], [0.8, 0.1, 0.2], 0.4, [0, 0.001, 0, 0]), 
-		new Sphere([0.54, -0.81, -1.8], [0.4, 0.9, 0.8], 0.19, [0, 0, 0, 3]), 
+		new Sphere([0, -1001, 0], [0.5, 0.5, 0.5], 1000, [0.9, 0, 0.6, 0],dummy_matrix), 
+		new Sphere([0, -0.58, -2.34], [0.8, 0.1, 0.2], 0.4, [0, 0.001, 0, 0],dummy_matrix), 
+		new Sphere([0.54, -0.81, -1.8], [0.4, 0.9, 0.8], 0.19, [0, 0, 0, 3],dummy_matrix), 
 	];
 
 	let quads = [

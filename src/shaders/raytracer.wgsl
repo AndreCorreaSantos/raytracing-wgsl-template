@@ -38,7 +38,7 @@ struct sphere {
   transform : vec4f,
   color : vec4f,
   material : vec4f,
-  matrix: mat3x3<f32>,
+  matrix: mat4x4<f32>,
 };
 
 struct quad {
@@ -152,6 +152,21 @@ fn environment_color(direction: vec3f, color1: vec3f, color2: vec3f) -> vec3f
   return col;
 }
 
+fn is_any_element_non_zero(mat_: mat4x4<f32>) -> bool {
+    return any(mat_[0] != vec4<f32>(0.0)) ||
+           any(mat_[1] != vec4<f32>(0.0)) ||
+           any(mat_[2] != vec4<f32>(0.0)) ||
+           any(mat_[3] != vec4<f32>(0.0));
+}
+
+fn get_mat3x3(mat_: mat4x4<f32>) -> mat3x3<f32> {
+    return mat3x3<f32>(
+        mat_[0].xyz, 
+        mat_[1].xyz,
+        mat_[2].xyz
+    );
+}
+
 fn check_ray_collision(r: ray, max: f32) -> hit_record
 {
   var spheresCount = i32(uniforms[19]);
@@ -168,8 +183,24 @@ fn check_ray_collision(r: ray, max: f32) -> hit_record
   {
     var sp_ = spheresb[i];
     var rec_ = hit_record(RAY_TMAX, vec3f(0.0), vec3f(0.0), vec4f(0.0), vec4f(0.0), false, false);
+    var is_gaussian = is_any_element_non_zero(sp_.matrix);
     
-    hit_sphere(sp_.transform.xyz,sp_.transform.w,r_,&rec_,min_t);
+    // if(is_gaussian)
+    // {
+      // var cov_matrix = get_mat3x3(sp_.matrix);// getting the 3x3 cov matrix from the 4x4 mat;
+      // hit_gaussian(sp_.transform.xyz,cov_matrix,r_,&rec_,min_t);
+    // }
+    // else{
+    //   hit_sphere(sp_.transform.xyz,sp_.transform.w,r_,&rec_,min_t);
+    // }
+    // var cov_matrix = get_mat3x3(sp_.matrix);// getting the 3x3 cov matrix from the 4x4 mat;
+    var cov_matrix = mat3x3<f32>(
+          vec3<f32>(10.0, 0.0, 0.0), // First row
+          vec3<f32>(0.0, 100.0, 0.0), // Second row
+          vec3<f32>(0.0, 0.0, 1.0)  // Third row
+      );
+    hit_gaussian(sp_.transform.xyz,cov_matrix,r_,&rec_,min_t);
+
     if(rec_.hit_anything)
     {
       min_t = rec_.t;
