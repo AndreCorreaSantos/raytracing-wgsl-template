@@ -1,3 +1,13 @@
+### New primitive: Splat
+![image](https://github.com/user-attachments/assets/671559ff-ad38-42a5-9364-01e97c5ffeb8)
+
+
+### New Scene: Splats
+![image](https://github.com/user-attachments/assets/429370bf-bba5-48fd-b1ed-4fdbc76007d5)
+![image](https://github.com/user-attachments/assets/61d8b604-5519-4273-a4ef-002cab54c697)
+
+
+
 ## WGSL Raytracer Template
 Template básico de um Ray Tracer em WGSL (WEBGPU). Tudo o que precisa para fazer o projeto esta aqui.
 
